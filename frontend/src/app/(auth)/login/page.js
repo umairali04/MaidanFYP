@@ -41,11 +41,23 @@ export default function LoginPage() {
         throw new Error(data.message || 'Login failed')
       }
 
+      // Save in cookie (IMPORTANT for middleware)
+      document.cookie = `token=${data.token}; path=/`
+      document.cookie = `role=${data.user.role}; path=/`
+
+      document.cookie = `name=${encodeURIComponent(data.user.name)}; path=/`
+      document.cookie = `email=${encodeURIComponent(data.user.email)}; path=/`
+
+      // Optional (keep for frontend use)
       // Save token (if using JWT)
       localStorage.setItem('token', data.token)
 
       // Redirect
-      router.push('/dashboard')
+      if (data.user.role === "PLAYER") {
+        router.push('/player_dashboard')
+      } else {
+        router.push('/ground_owner_dashboard')
+      }
 
     } catch (err) {
       setError(err.message)

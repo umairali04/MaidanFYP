@@ -211,3 +211,96 @@ export const resendOTP = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+// ============================================
+// Forget password
+// ============================================
+
+export const forgotPassword = async (req, res) => {
+  try {
+    
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Delete old reset OTPs
+    await prisma.passwordReset.deleteMany({ where: { userId: user.id } });
+
+    // Generate OTP
+    const otp = generateOTP();
+
+    await prisma.passwordReset.create({
+      data: {
+        userId: user.id,
+        otp,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+    });
+
+    await sendOTPEmail(email, otp);
+
+    return res.status(200).json({
+      message: "OTP sent to your email",
+      userId: user.id,
+    });
+
+  } catch (error) {
+    console.error("FORGOT PASSWORD ERROR 👉", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { userId, otp, newPassword } = req.body;
+
+    if (!userId || !otp || !newPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const record = await prisma.passwordReset.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!record) {
+      return res.status(400).json({ message: "No OTP found" });
+    }
+
+    if (new Date() > record.expiresAt) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    if (record.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    // Delete used OTP
+    await prisma.passwordReset.delete({ where: { id: record.id } });
+
+    return res.status(200).json({
+      message: "Password reset successful",
+    });
+
+  } catch (error) {
+    console.error("RESET PASSWORD ERROR 👉", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
