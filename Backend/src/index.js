@@ -5,7 +5,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import groundRoutes from "./routes/ground.routes.js";
-
+import bookingRoutes from "./routes/booking.routes.js"; // ← ADD THIS
 
 const app = express();
 
@@ -15,8 +15,9 @@ app.use(cors({
 }))
 app.use(express.json());
 
-app.use("/api/auth", authRoutes);
-app.use("/api/grounds", groundRoutes); 
+app.use("/api/auth",     authRoutes);
+app.use("/api/grounds",  groundRoutes); 
+app.use("/api/bookings", bookingRoutes); // ← ADD THIS
 
 app.get("/", (req, res) => {
   res.send("API is running");

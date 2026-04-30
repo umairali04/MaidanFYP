@@ -54,7 +54,7 @@ export default function LoginPage() {
 
       // Redirect
       if (data.user.role === "PLAYER") {
-        router.push('/player_dashboard')
+        router.push('/')
       } else {
         router.push('/ground_owner_dashboard')
       }
