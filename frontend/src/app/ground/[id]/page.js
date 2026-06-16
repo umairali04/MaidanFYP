@@ -153,6 +153,7 @@ export default function GroundDetailPage() {
             alt={ground.name}
             className="w-full h-full object-cover"
           />
+          
           <div className="absolute inset-0 bg-black/40" />
 
           {/* Back button */}
