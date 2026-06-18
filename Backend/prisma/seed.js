@@ -5,59 +5,87 @@ const prisma = new PrismaClient()
 
 async function main() {
 
-  // ============================================
-  // USERS
-  // ============================================
+// ============================================
+// ADMIN
+// ============================================
 
-  const hashedPassword = await bcrypt.hash('password123', 10)
+const adminPassword = await bcrypt.hash('admin123', 10)
 
-  const player1 = await prisma.user.create({
-    data: {
-      name:       'Ali Khan',
-      email:      'ali@test.com',
-      password:   hashedPassword,
-      phone:      '03001234567',
-      role:       'PLAYER',
-      isVerified: true,
-      image:      'https://randomuser.me/api/portraits/men/1.jpg',
-    }
-  })
+const admin = await prisma.user.upsert({
+  where: {
+    email: 'admin@gmail.com',
+  },
+  update: {},
+  create: {
+    name: 'Admin',
+    email: 'admin@gmail.com',
+    password: adminPassword,
+    role: 'ADMIN',
+    isVerified: true,
+  },
+})
 
-  const player2 = await prisma.user.create({
-    data: {
-      name:       'Sara Ahmed',
-      email:      'sara@test.com',
-      password:   hashedPassword,
-      phone:      '03111234567',
-      role:       'PLAYER',
-      isVerified: true,
-      image:      'https://randomuser.me/api/portraits/women/2.jpg',
-    }
-  })
+// ============================================
+// USERS
+// ============================================
 
-  const owner1 = await prisma.user.create({
-    data: {
-      name:       'Usman Malik',
-      email:      'usman@test.com',
-      password:   hashedPassword,
-      phone:      '03211234567',
-      role:       'GROUND_OWNER',
-      isVerified: true,
-      image:      'https://randomuser.me/api/portraits/men/3.jpg',
-    }
-  })
+const hashedPassword = await bcrypt.hash('password123', 10)
 
-  const owner2 = await prisma.user.create({
-    data: {
-      name:       'Bilal Raza',
-      email:      'bilal@test.com',
-      password:   hashedPassword,
-      phone:      '03311234567',
-      role:       'GROUND_OWNER',
-      isVerified: true,
-      image:      'https://randomuser.me/api/portraits/men/4.jpg',
-    }
-  })
+const player1 = await prisma.user.upsert({
+  where: { email: 'ali@test.com' },
+  update: {},
+  create: {
+    name: 'Ali Khan',
+    email: 'ali@test.com',
+    password: hashedPassword,
+    phone: '03001234567',
+    role: 'PLAYER',
+    isVerified: true,
+    image: 'https://randomuser.me/api/portraits/men/1.jpg',
+  },
+})
+
+const player2 = await prisma.user.upsert({
+  where: { email: 'sara@test.com' },
+  update: {},
+  create: {
+    name: 'Sara Ahmed',
+    email: 'sara@test.com',
+    password: hashedPassword,
+    phone: '03111234567',
+    role: 'PLAYER',
+    isVerified: true,
+    image: 'https://randomuser.me/api/portraits/women/2.jpg',
+  },
+})
+
+const owner1 = await prisma.user.upsert({
+  where: { email: 'usman@test.com' },
+  update: {},
+  create: {
+    name: 'Usman Malik',
+    email: 'usman@test.com',
+    password: hashedPassword,
+    phone: '03211234567',
+    role: 'GROUND_OWNER',
+    isVerified: true,
+    image: 'https://randomuser.me/api/portraits/men/3.jpg',
+  },
+})
+
+const owner2 = await prisma.user.upsert({
+  where: { email: 'bilal@test.com' },
+  update: {},
+  create: {
+    name: 'Bilal Raza',
+    email: 'bilal@test.com',
+    password: hashedPassword,
+    phone: '03311234567',
+    role: 'GROUND_OWNER',
+    isVerified: true,
+    image: 'https://randomuser.me/api/portraits/men/4.jpg',
+  },
+})
 
   // ============================================
   // GROUNDS

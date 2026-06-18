@@ -137,10 +137,10 @@ export default function Navbar() {
                     <Link href="/profile" onClick={() => setDropdownOpen(false)}>
                       <DropdownItem icon={<UserIcon />} label="My Profile" />
                     </Link>
-                    <Link href="/change-password" onClick={() => setDropdownOpen(false)}>
+                    <Link href="/change_password" onClick={() => setDropdownOpen(false)}>
                       <DropdownItem icon={<LockIcon />} label="Change Password" />
                     </Link>
-                    <Link href="/edit-profile" onClick={() => setDropdownOpen(false)}>
+                    <Link href="/edit_profile" onClick={() => setDropdownOpen(false)}>
                       <DropdownItem icon={<EditIcon />} label="Edit Profile" />
                     </Link>
                     <Link href="/bookings" onClick={() => setDropdownOpen(false)}>
