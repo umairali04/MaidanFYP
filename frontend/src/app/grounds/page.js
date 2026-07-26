@@ -1,10 +1,18 @@
 'use client'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
 export default function GroundsPage() {
+  return (
+    <Suspense fallback={null}>
+      <GroundsPageInner />
+    </Suspense>
+  )
+}
+
+function GroundsPageInner() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const sport = searchParams.get('sport')
