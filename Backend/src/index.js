@@ -11,6 +11,8 @@ import ownerRoutes from './routes/owner.routes.js'
 import adminRoutes from "./routes/admin.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import disputeRoutes from "./routes/dispute.routes.js";
+import walletRoutes from "./routes/wallet.routes.js";
+import chatbotRoutes from "./routes/chatbot.routes.js";
 
 const app = express();
 
@@ -29,6 +31,9 @@ app.use('/api/owner', ownerRoutes)
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/disputes", disputeRoutes);
+
+app.use("/api/wallet", walletRoutes)
+app.use("/api/chatbot", chatbotRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");

@@ -109,7 +109,7 @@ export default function MyGrounds() {
               <GroundCard
                 key={ground.id}
                 ground={ground}
-                onEdit={() => router.push(`/owner/grounds/${ground.id}/edit`)}
+                onEdit={() => router.push(`/ground_owner_dashboard/my-grounds/${ground.id}`)}
               />
             ))}
           </div>

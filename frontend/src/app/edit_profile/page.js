@@ -94,74 +94,97 @@ export default function EditProfilePage() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-gray-50 px-4 py-10 font-sans">
-        <div className="mx-auto max-w-md">
+      <main className="min-h-screen bg-[#f8fafc] px-4 py-16 font-sans">
+        <div className="mx-auto max-w-lg">
           <button
             onClick={() => router.back()}
-            className="mb-5 cursor-pointer border-none bg-transparent p-0 text-sm text-gray-500 hover:text-gray-800"
+            className="mb-6 cursor-pointer text-sm font-medium text-gray-500 transition hover:text-gray-800"
           >
             ← Back
           </button>
 
-          <h1 className="mb-2 text-2xl font-bold text-gray-900">
-            Edit Profile
-          </h1>
-
-          <p className="mb-8 text-sm text-gray-500">
-            Update your personal information
-          </p>
-
           {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#00ff88] border-t-transparent" />
+            <div className="rounded-3xl border border-gray-100 bg-white p-20 shadow-[0_10px_40px_rgba(0,0,0,0.08)]">
+              <div className="flex justify-center">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#00ff88] border-t-transparent" />
+              </div>
             </div>
           ) : (
-            <div className="rounded-3xl border border-gray-200 bg-white p-7">
+            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.08)] sm:p-10">
+              <div className="mb-10 flex items-center gap-4">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#00ff88]/10">
+                  <svg
+                    className="h-8 w-8 text-[#00cc6f]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M5.121 17.804A9 9 0 1118.879 17.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Edit Profile
+                  </h1>
+                  <p className="mt-1 text-sm leading-6 text-gray-500">
+                    Update your personal information and keep your account up to date.
+                  </p>
+                </div>
+              </div>
+
               {success && (
-                <div className="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-600">
+                <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">
                   ✅ Profile updated successfully!
                 </div>
               )}
 
               {error && (
-                <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
                   {error}
                 </div>
               )}
 
-              <form onSubmit={handleSave} className="flex flex-col gap-5">
+              <form onSubmit={handleSave} className="space-y-7">
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Full Name
                   </label>
+
                   <input
                     value={form.name}
                     onChange={e =>
                       setForm(prev => ({ ...prev, name: e.target.value }))
                     }
                     placeholder="John Doe"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#00ff88] focus:bg-white"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#00ff88] focus:bg-white focus:ring-4 focus:ring-[#00ff88]/15"
                   />
                 </div>
 
-                <div>
+                <div className='mt-2 mb-2'>
                   <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Phone Number
                   </label>
+
                   <input
                     value={form.phone}
                     onChange={e =>
                       setForm(prev => ({ ...prev, phone: e.target.value }))
                     }
                     placeholder="+92 300 1234567"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#00ff88] focus:bg-white"
+                    className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-[#00ff88] focus:bg-white focus:ring-4 focus:ring-[#00ff88]/15"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={saving}
-                  className="mt-2 w-full cursor-pointer rounded-xl bg-[#00ff88] py-3.5 text-sm font-bold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="w-full cursor-pointer rounded-2xl bg-[#00ff88] py-4 text-base font-bold text-black shadow-lg shadow-green-200 transition hover:scale-[1.01] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>

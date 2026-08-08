@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 
-export default function Navbar() {
+export default function Navbar({ transparent = false }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [user, setUser] = useState(null)
@@ -69,7 +69,7 @@ export default function Navbar() {
   const navLinks = [
   { name: 'Home', path: '/' },
   { name: 'Facilities', path: '/sports' },
-  // { name: 'Events', path: '/events' },
+  { name: 'Search Players', path: '/search_players' },
   { name: 'Contact Us', path: '/contact' },
 ];
 
@@ -118,6 +118,13 @@ export default function Navbar() {
             </>
           ) : (
             <>
+              {user?.role === "GROUND_OWNER" && (
+                <Link href="/ground_owner_dashboard">
+                  <button className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">
+                    Dashboard
+                  </button>
+                </Link>
+              )}
               {/* Avatar Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
@@ -178,15 +185,15 @@ export default function Navbar() {
       <div className={`md:hidden overflow-hidden transition-all duration-300 ${menuOpen ? 'max-h-screen pb-4 border-t border-gray-100' : 'max-h-0'}`}>
         <div className="flex flex-col px-6 pt-4 gap-1">
           {navLinks.map((link) => (
-  <Link
-    key={link.name}
-    href={link.path}
-    className="px-3 py-2.5 text-sm text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-    onClick={() => setMenuOpen(false)}
-  >
-    {link.name}
-  </Link>
-))}
+            <Link
+              key={link.name}
+              href={link.path}
+              className="px-3 py-2.5 text-sm text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              onClick={() => setMenuOpen(false)}
+            >
+              {link.name}
+            </Link>
+          ))}
 
           {user ? (
             <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-1">
@@ -194,6 +201,15 @@ export default function Navbar() {
                 <p className="text-gray-900 text-sm font-semibold">{user.name}</p>
                 <p className="text-gray-400 text-xs mt-0.5">{user.email}</p>
               </div>
+              {user?.role === "GROUND_OWNER" && (
+                <Link
+                  href="/ground_owner_dashboard"
+                  onClick={() => setMenuOpen(false)}
+                  className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                >
+                  Dashboard
+                </Link>
+              )}
               <Link href="/profile" className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">My Profile</Link>
               <Link href="/change-password" className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">Change Password</Link>
               <Link href="/edit-profile" className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">Edit Profile</Link>

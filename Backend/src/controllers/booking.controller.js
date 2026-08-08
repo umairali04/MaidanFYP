@@ -140,3 +140,104 @@ export const cancelBooking = async (req, res) => {
     res.status(500).json({ success: false, message: err.message })
   }
 }
+
+// ============================================
+// GET OWNER BOOKINGS
+// ============================================
+
+export const getOwnerBookings = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+
+    const bookings = await prisma.booking.findMany({
+      where: {
+        ground: {
+          ownerId,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        ground: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            sportType: true,
+          },
+        },
+      },
+      orderBy: {
+        bookingDate: "desc",
+      },
+    });
+
+    res.json({
+      success: true,
+      bookings,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// ============================================
+// Update owner BOOKINGS
+// ============================================
+export const updateBookingStatus = async (req, res) => {
+  try {
+    const ownerId = req.user.id;
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const booking = await prisma.booking.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        ground: true,
+      },
+    });
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    if (booking.ground.ownerId !== ownerId) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    const updated = await prisma.booking.update({
+      where: {
+        id,
+      },
+      data: {
+        status,
+      },
+    });
+
+    res.json({
+      success: true,
+      booking: updated,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};

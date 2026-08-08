@@ -2,6 +2,54 @@
 
 import { useEffect, useState } from 'react'
 
+const STAT_CONFIG = [
+  {
+    key: 'totalGrounds',
+    label: 'Total Grounds',
+    icon: '⚽',
+    accent: '#22C55E',
+    iconBg: 'bg-green-50',
+    valueColor: 'text-green-600',
+    format: (v) => v.toLocaleString(),
+  },
+  {
+    key: 'totalBookingsAllTime',
+    label: 'Total Bookings',
+    icon: '📋',
+    accent: '#3B82F6',
+    iconBg: 'bg-blue-50',
+    valueColor: 'text-blue-600',
+    format: (v) => v.toLocaleString(),
+  },
+  {
+    key: 'totalBookingsThisMonth',
+    label: 'Bookings This Month',
+    icon: '📅',
+    accent: '#A855F7',
+    iconBg: 'bg-purple-50',
+    valueColor: 'text-purple-600',
+    format: (v) => v.toLocaleString(),
+  },
+  {
+    key: 'totalRevenueAllTime',
+    label: 'Total Revenue',
+    icon: '💰',
+    accent: '#10B981',
+    iconBg: 'bg-emerald-50',
+    valueColor: 'text-emerald-600',
+    format: (v) => `₨ ${Number(v || 0).toLocaleString()}`,
+  },
+  {
+    key: 'totalRevenueThisMonth',
+    label: 'Revenue This Month',
+    icon: '💵',
+    accent: '#F59E0B',
+    iconBg: 'bg-amber-50',
+    valueColor: 'text-amber-600',
+    format: (v) => `₨ ${Number(v || 0).toLocaleString()}`,
+  },
+]
+
 export default function OwnerStats() {
   const [stats, setStats] = useState({
     totalGrounds: 0,
@@ -56,12 +104,12 @@ export default function OwnerStats() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-8 md:mb-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 mb-8 md:mb-12">
         {Array(5).fill(0).map((_, i) => (
-          <div key={i} className="bg-[#111]/80 backdrop-blur-sm border border-gray-800 p-6 md:p-8 rounded-2xl animate-pulse">
-            <div className="h-8 w-8 bg-gray-600 rounded-full mb-4"></div>
-            <div className="h-4 bg-gray-600 rounded mb-2"></div>
-            <div className="h-12 bg-gray-600 rounded"></div>
+          <div key={i} className="bg-white border border-gray-200 p-6 md:p-7 rounded-2xl shadow-sm animate-pulse">
+            <div className="h-11 w-11 bg-gray-200 rounded-xl mb-6"></div>
+            <div className="h-3 bg-gray-200 rounded mb-3 w-2/3"></div>
+            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
           </div>
         ))}
       </div>
@@ -69,53 +117,30 @@ export default function OwnerStats() {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12">
-      
-      {/* 1. TOTAL GROUNDS */}
-      <div className="bg-[#111]/80 backdrop-blur-sm border border-gray-800 p-6 md:p-8 rounded-2xl hover:border-green-500/50 transition-all group">
-        <div className="text-2xl md:text-3xl mb-2">⚽</div>
-        <h3 className="text-sm md:text-base font-bold text-white mb-1">Total Grounds</h3>
-        <p className="text-2xl md:text-4xl lg:text-3xl font-black text-green-500">
-          {stats.totalGrounds.toLocaleString()}
-        </p>
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-5 mb-8 md:mb-12">
+      {STAT_CONFIG.map(({ key, label, icon, accent, iconBg, valueColor, format }) => (
+        <div
+          key={key}
+          className="relative bg-white border border-gray-200 p-6 md:p-7 rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group"
+        >
+          {/* top accent bar */}
+          <div
+            className="absolute top-0 left-0 right-0 h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            style={{ backgroundColor: accent }}
+          />
 
-      {/* 2. TOTAL BOOKINGS (ALL TIME) */}
-      <div className="bg-[#111]/80 backdrop-blur-sm border border-gray-800 p-6 md:p-8 rounded-2xl hover:border-blue-500/50 transition-all group">
-        <div className="text-2xl md:text-3xl mb-2">📋</div>
-        <h3 className="text-sm md:text-base font-bold text-white mb-1">Total Bookings</h3>
-        <p className="text-2xl md:text-4xl lg:text-3xl font-black text-blue-400">
-          {stats.totalBookingsAllTime.toLocaleString()}
-        </p>
-      </div>
+          <div className={`w-11 h-11 md:w-12 md:h-12 ${iconBg} rounded-xl flex items-center justify-center text-xl md:text-2xl mb-6 group-hover:scale-105 transition-transform`}>
+            {icon}
+          </div>
 
-      {/* 3. BOOKINGS THIS MONTH */}
-      <div className="bg-[#111]/80 backdrop-blur-sm border border-gray-800 p-6 md:p-8 rounded-2xl hover:border-purple-500/50 transition-all group">
-        <div className="text-2xl md:text-3xl mb-2">📅</div>
-        <h3 className="text-sm md:text-base font-bold text-white mb-1">Bookings This Month</h3>
-        <p className="text-2xl md:text-4xl lg:text-3xl font-black text-purple-400">
-          {stats.totalBookingsThisMonth.toLocaleString()}
-        </p>
-      </div>
-
-      {/* 4. TOTAL REVENUE (ALL TIME) */}
-      <div className="bg-[#111]/80 backdrop-blur-sm border border-gray-800 p-6 md:p-8 rounded-2xl hover:border-emerald-500/50 transition-all group">
-        <div className="text-2xl md:text-3xl mb-2">💰</div>
-        <h3 className="text-sm md:text-base font-bold text-white mb-1">Total Revenue</h3>
-        <p className="text-2xl md:text-4xl lg:text-3xl font-black text-emerald-400">
-          ₨ {Number(stats.totalRevenueAllTime || 0).toLocaleString()}
-        </p>
-      </div>
-
-      {/* 5. REVENUE THIS MONTH */}
-      <div className="bg-[#111]/80 backdrop-blur-sm border border-gray-800 p-6 md:p-8 rounded-2xl hover:border-yellow-500/50 transition-all group">
-        <div className="text-2xl md:text-3xl mb-2">💵</div>
-        <h3 className="text-sm md:text-base font-bold text-white mb-1">Revenue This Month</h3>
-        <p className="text-2xl md:text-4xl lg:text-3xl font-black text-yellow-400">
-          ₨ {Number(stats.totalRevenueThisMonth || 0).toLocaleString()}
-        </p>
-      </div>
-
+          <h3 className="text-[11px] md:text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
+            {label}
+          </h3>
+          <p className={`text-2xl md:text-3xl font-black ${valueColor} tracking-tight truncate`}>
+            {format(stats[key])}
+          </p>
+        </div>
+      ))}
     </div>
   )
 }

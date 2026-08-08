@@ -473,9 +473,9 @@ export default function GroundDetailPage() {
           PAYMENT MODAL
       ══════════════════════════════════════════ */}
       {showPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
-
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm overflow-y-auto">
+    <div className="min-h-screen flex justify-center px-4 py-24">
+      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden h-fit">
             {paymentDone ? (
               /* ── SUCCESS SCREEN ── */
               <div className="p-8 text-center">
@@ -525,6 +525,7 @@ export default function GroundDetailPage() {
               /* ── PAYMENT FORM ── */
               <>
                 {/* Header */}
+                {/* <div style={{marginTop: "100px"}}></div> */}
                 <div className="bg-[#0f0f0f] p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-white font-bold text-lg">Complete Payment</h2>
@@ -614,6 +615,7 @@ export default function GroundDetailPage() {
                 </div>
               </>
             )}
+          </div>
           </div>
         </div>
       )}

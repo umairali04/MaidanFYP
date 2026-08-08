@@ -497,6 +497,13 @@ export default function MyBookingsPage() {
                   </label>
                   <input
                     value={disputeTitle}
+                    type="text"
+                    onKeyDown={(e) => {
+                      if (!/[a-zA-Z\s]/.test(e.key) &&
+                          !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                        e.preventDefault()
+                      }
+                    }}
                     onChange={e => setDisputeTitle(e.target.value)}
                     placeholder="e.g. Ground was not available"
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#00ff88]"

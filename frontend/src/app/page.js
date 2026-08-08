@@ -4,6 +4,7 @@ import Hero from "@/components/Hero";
 import ChooseUs from "@/components/ChooseUs";
 import PopularGrounds from "@/components/PopularGrounds";
 import Footer from "@/components/Footer";
+import Facilities from "@/components/Facilities";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <Hero />
       <PopularGrounds />
       {/* <Banner /> */}
+      {/* <Facilities /> */}
       <ChooseUs />
       <Footer />
     </>

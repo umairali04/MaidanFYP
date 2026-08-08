@@ -44,27 +44,31 @@ export default function AdminLogin() {
   }
 
   return (
-  <div className="min-h-screen bg-[#f4f8f5] flex items-center justify-center px-4">
-    <div
-      className={`w-full max-w-md transition-all duration-700 ${
-        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-      }`}
-    >
-      {/* Brand */}
-      <div className="text-center mb-10">
-        <h1 className="text-5xl font-extrabold tracking-[0.22em] text-gray-900">
-          MAIDAN
-        </h1>
-        <p className="mt-4 text-sm tracking-wide text-gray-500 uppercase">
-          Admin Portal
-        </p>
-      </div>
+  <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 font-[Inter]">
+
+    <div className="grid w-full max-w-6xl min-h-[80vh] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl md:grid-cols-2">
+
+  {/* LEFT SIDE - IMAGE */}
+  <div
+  className="hidden md:block md:h-full"
+  style={{ height: '80vh' }}
+>
+  <img
+    src="/images/background/bg_3.jpg"
+    alt="Sports"
+    className="h-full w-full object-cover"
+  />
+</div>
 
       {/* Card */}
-      <div className="bg-white rounded-3xl shadow-2xl shadow-gray-200 border border-gray-100 px-8 py-9">
-        <h2 className="text-3xl font-bold text-gray-900">
-          Welcome back
-        </h2>
+      <div className="relative z-10 flex h-full w-full items-center justify-center">
+        <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-xl">
+
+    {/* Header */}
+    <h1 className="mb-1 text-[1.6rem] font-bold text-gray-900">
+      Welcome back
+    </h1>
+        
 
         <p className="text-gray-500 mt-2 mb-8">
           Sign in to your admin account
@@ -105,6 +109,7 @@ export default function AdminLogin() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
+                style={{ paddingLeft: "50px" }}
                 className="w-full rounded-2xl border border-gray-300 bg-gray-50 px-4 py-4 pl-12 text-gray-900 placeholder-gray-400 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
               />
             </div>
@@ -112,7 +117,7 @@ export default function AdminLogin() {
 
           {/* Password */}
           <div>
-            <label className="block mb-2 text-xs font-bold tracking-[0.18em] text-gray-700 uppercase">
+            <label className="block mb-2 mt-3 text-xs font-bold tracking-[0.18em] text-gray-700 uppercase">
               Password
             </label>
 
@@ -138,6 +143,7 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
+                style={{ paddingLeft: "50px" }}
                 className="w-full rounded-2xl border border-gray-300 bg-gray-50 px-4 py-4 pl-12 pr-12 text-gray-900 placeholder-gray-400 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
               />
 
@@ -154,7 +160,7 @@ export default function AdminLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 text-sm font-extrabold uppercase tracking-[0.22em] text-white shadow-lg shadow-green-200 transition hover:bg-green-700 disabled:opacity-60"
+            className="mt-3 mb-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 text-sm font-extrabold uppercase tracking-[0.22em] text-white shadow-lg shadow-green-200 transition hover:bg-green-700 disabled:opacity-60"
           >
             {loading ? "Authenticating..." : "Login →"}
           </button>
@@ -163,6 +169,7 @@ export default function AdminLogin() {
         <p className="mt-7 border-t border-gray-100 pt-5 text-center text-xs text-gray-400">
           Secured by <span className="font-bold text-green-600">MAIDAN</span> · Admin Access Only
         </p>
+      </div>
       </div>
     </div>
   </div>

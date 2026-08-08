@@ -26,6 +26,17 @@ export const getOwnerStats = async (req, res) => {
       },
     })
 
+    const totalBookingsThisMonth = await prisma.booking.count({
+      where: {
+        groundId: { in: groundIds },
+        status: 'CONFIRMED',
+        bookingDate: {
+          gte: startOfMonth,
+          lte: endOfMonth,
+        },
+      },
+    })
+
     // 🔥 4. REVENUE - SIMPLEST METHOD (fetch all & sum manually)
     const allPayments = await prisma.payment.findMany({
       where: {

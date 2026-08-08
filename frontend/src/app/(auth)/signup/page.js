@@ -103,262 +103,276 @@ export default function SignupPage() {
     }
   }
 
-  const inputStyle = (field, extraPaddingRight = false) => {
-    const hasError = touched[field] && (fieldError(field) || (field === 'password' && form.password && passwordErrors.length > 0))
-    return {
-      width: '100%',
-      height: '44px',
-      padding: extraPaddingRight ? '0 2.8rem 0 1rem' : '0 1rem',
-      border: hasError
-        ? '1.5px solid #ef4444'
-        : focusedField === field
-          ? '1.5px solid var(--blue, #2563eb)'
-          : '1px solid #e5e7eb',
-      borderRadius: '8px',
-      fontSize: '0.95rem',
-      fontFamily: 'Inter, sans-serif',
-      color: '#111',
-      background: '#fafafa',
-      outline: 'none',
-      transition: 'border 0.2s',
-      boxSizing: 'border-box',
-    }
-  }
-
-  const labelStyle = {
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    color: '#374151',
-  }
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#f9fafb',
-      fontFamily: 'Inter, sans-serif',
-      padding: '2rem 1rem',
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '420px',
-        background: '#fff',
-        borderRadius: '16px',
-        border: '1px solid #e5e7eb',
-        padding: '2.5rem 2rem',
-        boxSizing: 'border-box',
-      }}>
+  <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 font-[Inter]">
 
-        {/* Header */}
-        <h1 style={{ fontSize: '1.6rem', fontWeight: '700', color: '#111', margin: '0 0 0.3rem' }}>
-          Create account
-        </h1>
-        <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: '0 0 1.8rem' }}>
-          Join us — it only takes a minute
-        </p>
+    <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:grid-cols-2">
 
-        {/* Submit error */}
-        {submitError && (
-          <div style={{
-            marginBottom: '1rem',
-            padding: '0.6rem 0.9rem',
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '8px',
-            color: '#dc2626',
-            fontSize: '0.875rem',
-          }}>
-            {submitError}
-          </div>
-        )}
+      {/* LEFT SIDE - IMAGE */}
+      <div className="h-56 md:h-auto md:min-h-[700px]">
+        <img
+          src="/images/background/bg_3.jpg"
+          alt="Sports"
+          className="h-full w-full object-cover"
+        />
+      </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }} noValidate>
+      {/* RIGHT SIDE - FORM */}
+      <div className="p-6 sm:p-8 lg:p-12">
 
-          {/* Full Name */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={labelStyle}>Full name</label>
+      {/* Header */}
+      <h1 className="mb-1 text-3xl font-bold text-gray-900">
+        Create account
+      </h1>
+
+      <p className="mb-8 text-sm text-gray-500">
+        Join us — it only takes a minute
+      </p>
+
+      {/* Submit Error */}
+      {submitError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {submitError}
+        </div>
+      )}
+
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        className="flex flex-col gap-5"
+      >
+
+        {/* Full Name */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Full name
+          </label>
+
+          <input
+            type="text"
+            value={form.name}
+            onChange={handleChange('name')}
+            onFocus={() => setFocusedField('name')}
+            onBlur={() => {
+              setFocusedField(null)
+              handleBlur('name')()
+            }}
+            placeholder="John Doe"
+            autoComplete="name"
+            className={`h-11 w-full rounded-lg bg-gray-50 px-4 text-sm outline-none transition-all
+            ${
+              touched.name && fieldError('name')
+                ? 'border border-red-500'
+                : focusedField === 'name'
+                ? 'border border-blue-600'
+                : 'border border-gray-300'
+            }`}
+          />
+
+          {fieldError('name') && (
+            <p className="text-xs text-red-500">
+              {fieldError('name')}
+            </p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Email
+          </label>
+
+          <input
+            type="email"
+            value={form.email}
+            onChange={handleChange('email')}
+            onFocus={() => setFocusedField('email')}
+            onBlur={() => {
+              setFocusedField(null)
+              handleBlur('email')()
+            }}
+            placeholder="you@example.com"
+            autoComplete="email"
+            className={`h-11 w-full rounded-lg bg-gray-50 px-4 text-sm outline-none transition-all
+            ${
+              touched.email && fieldError('email')
+                ? 'border border-red-500'
+                : focusedField === 'email'
+                ? 'border border-blue-600'
+                : 'border border-gray-300'
+            }`}
+          />
+
+          {fieldError('email') && (
+            <p className="text-xs text-red-500">
+              {fieldError('email')}
+            </p>
+          )}
+        </div>
+                {/* Password */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Password
+          </label>
+
+          <div className="relative">
             <input
-              type="text"
-              value={form.name}
-              onChange={handleChange('name')}
-              onFocus={() => setFocusedField('name')}
-              onBlur={() => { setFocusedField(null); handleBlur('name')() }}
-              placeholder="John Doe"
-              autoComplete="name"
-              style={inputStyle('name')}
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={handleChange('password')}
+              onFocus={() => setFocusedField('password')}
+              onBlur={() => {
+                setFocusedField(null)
+                handleBlur('password')()
+              }}
+              placeholder="••••••••"
+              autoComplete="new-password"
+              className={`h-11 w-full rounded-lg bg-gray-50 px-4 pr-11 text-sm outline-none transition-all
+              ${
+                touched.password &&
+                (fieldError('password') ||
+                  (form.password && passwordErrors.length > 0))
+                  ? 'border border-red-500'
+                  : focusedField === 'password'
+                  ? 'border border-blue-600'
+                  : 'border border-gray-300'
+              }`}
             />
-            {fieldError('name') && <p style={{ margin: 0, fontSize: '0.78rem', color: '#ef4444' }}>{fieldError('name')}</p>}
+
+            <button
+              type="button"
+              onClick={() => setShowPassword(v => !v)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-700"
+            >
+              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
           </div>
 
-          {/* Email */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={labelStyle}>Email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={handleChange('email')}
-              onFocus={() => setFocusedField('email')}
-              onBlur={() => { setFocusedField(null); handleBlur('email')() }}
-              placeholder="you@example.com"
-              autoComplete="email"
-              style={inputStyle('email')}
-            />
-            {fieldError('email') && <p style={{ margin: 0, fontSize: '0.78rem', color: '#ef4444' }}>{fieldError('email')}</p>}
-          </div>
-
-          {/* Password */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={labelStyle}>Password</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={form.password}
-                onChange={handleChange('password')}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => { setFocusedField(null); handleBlur('password')() }}
-                placeholder="••••••••"
-                autoComplete="new-password"
-                style={inputStyle('password', true)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(v => !v)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                style={{
-                  position: 'absolute',
-                  right: '0.75rem',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  display: 'flex',
-                  alignItems: 'center',
-                  color: '#9ca3af',
-                }}
-                onMouseEnter={e => e.currentTarget.style.color = '#374151'}
-                onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
-            </div>
-
-            {/* Password rules */}
-            {touched.password && form.password && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginTop: '0.2rem' }}>
-                {[
-                  { label: 'At least 6 characters', ok: form.password.length >= 6 },
-                  { label: 'At least one special character', ok: SPECIAL_CHAR.test(form.password) },
-                ].map(rule => (
-                  <p key={rule.label} style={{
-                    margin: 0,
-                    fontSize: '0.78rem',
-                    color: rule.ok ? '#16a34a' : '#ef4444',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                  }}>
-                    {rule.ok ? '✓' : '✗'} {rule.label}
-                  </p>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Phone */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={labelStyle}>Phone number</label>
-            <input
-              type="tel"
-              value={form.phone}
-              onChange={handleChange('phone')}
-              onFocus={() => setFocusedField('phone')}
-              onBlur={() => { setFocusedField(null); handleBlur('phone')() }}
-              placeholder="+92 300 1234567"
-              autoComplete="tel"
-              style={inputStyle('phone')}
-            />
-            {fieldError('phone') && <p style={{ margin: 0, fontSize: '0.78rem', color: '#ef4444' }}>{fieldError('phone')}</p>}
-          </div>
-
-          {/* Role */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            <label style={labelStyle}>Role</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+          {touched.password && form.password && (
+            <div className="mt-1 flex flex-col gap-1">
               {[
-                { value: 'PLAYER', label: 'Player' },
-                { value: 'GROUND_OWNER', label: 'Ground Owner' },
-              ].map(opt => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => { setForm(p => ({ ...p, role: opt.value })); setTouched(p => ({ ...p, role: true })) }}
-                  style={{
-                    height: '44px',
-                    border: form.role === opt.value ? '1.5px solid var(--blue, #2563eb)' : '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    background: form.role === opt.value ? 'rgba(37, 99, 235, 0.08)' : '#fafafa',
-                    color: form.role === opt.value ? 'var(--blue, #2563eb)' : '#6b7280',
-                    fontSize: '0.875rem',
-                    fontWeight: form.role === opt.value ? '600' : '500',
-                    fontFamily: 'Inter, sans-serif',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
+                {
+                  label: 'At least 6 characters',
+                  ok: form.password.length >= 6,
+                },
+                {
+                  label: 'At least one special character',
+                  ok: SPECIAL_CHAR.test(form.password),
+                },
+              ].map(rule => (
+                <p
+                  key={rule.label}
+                  className={`flex items-center gap-1 text-xs ${
+                    rule.ok ? 'text-green-600' : 'text-red-500'
+                  }`}
                 >
-                  {opt.label}
-                </button>
+                  {rule.ok ? '✓' : '✗'} {rule.label}
+                </p>
               ))}
             </div>
-            {touched.role && !form.role && (
-              <p style={{ margin: 0, fontSize: '0.78rem', color: '#ef4444' }}>Please select a role.</p>
-            )}
+          )}
+        </div>
+
+        {/* Phone */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Phone number
+          </label>
+
+          <input
+            type="tel"
+            value={form.phone}
+            onChange={handleChange('phone')}
+            onFocus={() => setFocusedField('phone')}
+            onBlur={() => {
+              setFocusedField(null)
+              handleBlur('phone')()
+            }}
+            placeholder="+92 300 1234567"
+            autoComplete="tel"
+            className={`h-11 w-full rounded-lg bg-gray-50 px-4 text-sm outline-none transition-all
+            ${
+              touched.phone && fieldError('phone')
+                ? 'border border-red-500'
+                : focusedField === 'phone'
+                ? 'border border-blue-600'
+                : 'border border-gray-300'
+            }`}
+          />
+
+          {fieldError('phone') && (
+            <p className="text-xs text-red-500">
+              {fieldError('phone')}
+            </p>
+          )}
+        </div>
+                {/* Role */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-semibold text-gray-700">
+            Role
+          </label>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {[
+              { value: 'PLAYER', label: 'Player' },
+              { value: 'GROUND_OWNER', label: 'Ground Owner' },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  setForm((p) => ({ ...p, role: opt.value }))
+                  setTouched((p) => ({ ...p, role: true }))
+                }}
+                className={`h-11 rounded-lg border text-sm font-medium transition-all
+                ${
+                  form.role === opt.value
+                    ? 'border-blue-600 bg-blue-50 text-blue-600'
+                    : 'border-gray-300 bg-gray-50 text-gray-600 hover:border-blue-400 hover:bg-blue-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#1d4ed8' }}
-            onMouseLeave={e => { if (!loading) e.currentTarget.style.background = 'var(--blue, #2563eb)' }}
-            style={{
-              marginTop: '0.4rem',
-              height: '44px',
-              width: '100%',
-              background: 'var(--blue, #2563eb)',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              fontFamily: 'Inter, sans-serif',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.6 : 1,
-              transition: 'background 0.2s, opacity 0.2s',
-            }}
-          >
-            {loading ? 'Creating account…' : 'Create account'}
-          </button>
-        </form>
+          {touched.role && !form.role && (
+            <p className="text-xs text-red-500">
+              Please select a role.
+            </p>
+          )}
+        </div>
 
-        {/* Already have account */}
-        <p style={{ marginTop: '1.6rem', textAlign: 'center', fontSize: '0.875rem', color: '#6b7280' }}>
-          Already have an account?{' '}
-          <a
-            href="/login"
-            style={{ color: 'var(--blue, #2563eb)', fontWeight: '600', textDecoration: 'none' }}
-            onMouseEnter={e => e.target.style.textDecoration = 'underline'}
-            onMouseLeave={e => e.target.style.textDecoration = 'none'}
-          >
-            Sign in
-          </a>
-        </p>
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className={`mt-2 h-11 w-full rounded-lg bg-blue-600 text-sm font-semibold uppercase tracking-wide text-white transition-all
+          ${
+            loading
+              ? 'cursor-not-allowed opacity-60'
+              : 'hover:bg-blue-700 active:scale-[0.98]'
+          }`}
+        >
+          {loading ? 'Creating account…' : 'Create account'}
+        </button>
+      </form>
+
+      {/* Footer */}
+      <p className="mt-7 text-center text-sm text-gray-500">
+        Already have an account?{' '}
+        <a
+          href="/login"
+          className="font-semibold text-blue-600 transition hover:underline"
+        >
+          Sign in
+        </a>
+      </p>
       </div>
+
     </div>
-  )
+
+</div>
+)
 }
