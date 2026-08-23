@@ -54,6 +54,29 @@ enum WalletTransactionType {
   REFUND
 }
 
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ParticipantRole {
+  ORGANIZER
+  PLAYER
+}
+
+enum ParticipantStatus {
+  INVITED
+  CONFIRMED
+  DECLINED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  VOICE
+}
+
 // ============================================
 // USER
 // ============================================
@@ -65,6 +88,7 @@ model User {
   password    String
   phone       String?
   image       String?
+  city        String?
   role        Role     @default(PLAYER)
   isVerified  Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -90,6 +114,14 @@ model User {
 
   chatMessages  ChatMessage[]
   chatSessions  ChatSession[]
+
+  preferredSports SportType[]
+
+  sentConnections     Connection[]       @relation("SentConnections")
+  receivedConnections Connection[]       @relation("ReceivedConnections")
+  sentMessages        Message[]          @relation("SentMessages")
+  receivedMessages    Message[]          @relation("ReceivedMessages")
+  matchParticipations MatchParticipant[]
 }
 
 model PasswordReset {
@@ -134,6 +166,8 @@ model Ground {
   revenueReports RevenueReport[]
 
   disputes Dispute[] //chnaged
+
+  maxPlayers Int @default(10)
 }
 
 // ============================================
@@ -184,6 +218,8 @@ model Booking {
   payment       Payment?
 
   disputes Dispute[] //changed
+
+  participants MatchParticipant[]
 }
 
 // ============================================
@@ -196,6 +232,7 @@ model Payment {
   amount        Float
   paymentStatus PaymentStatus @default(PENDING)
   transactionId String?
+  stripeSessionId String?
   method        String?       // "JazzCash", "EasyPaisa", "Card", "Cash"
   paidAt        DateTime?
   createdAt     DateTime      @default(now())
@@ -325,4 +362,69 @@ model Dispute {
   user    User     @relation(fields: [userId], references: [id])
   ground  Ground?  @relation(fields: [groundId], references: [id])
   booking Booking? @relation(fields: [bookingId], references: [id])
+}
+
+// ============================================
+// Connection
+// ============================================
+
+model Connection {
+  id     String           @id @default(uuid())
+  status ConnectionStatus @default(PENDING)
+
+  senderId String
+  sender   User   @relation("SentConnections", fields: [senderId], references: [id])
+
+  receiverId String
+  receiver   User   @relation("ReceivedConnections", fields: [receiverId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([senderId, receiverId])
+}
+
+// ============================================
+// Messages to other players
+// ============================================
+
+model Message {
+  id String @id @default(uuid())
+
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id])
+
+  receiverId String
+  receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  content     String?
+  isRead      Boolean     @default(false)
+  isDeleted   Boolean     @default(false)
+  deliveredAt DateTime?
+  readAt      DateTime?
+  duration    Int?
+  fileUrl     String?
+  type        MessageType @default(TEXT)
+  createdAt   DateTime    @default(now())
+}
+
+// ============================================
+// Matching participants
+// ============================================
+model MatchParticipant {
+  id String @id @default(uuid())
+
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id])
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  role   ParticipantRole   @default(PLAYER)
+  status ParticipantStatus @default(INVITED)
+
+  invitedAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@unique([bookingId, userId])
 }

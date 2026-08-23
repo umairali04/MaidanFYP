@@ -5,6 +5,7 @@ import OwnerStats from './components/OwnerStats'
 import { useRouter } from "next/navigation";
 import SettingsPage from "./components/SettingsPage";
 import BookingsPage from "./components/BookingsPage";
+import Link from 'next/link'
 
 // ---------------- ICON ----------------
 const Plus = () => <span className="font-bold text-lg">+</span>
@@ -720,6 +721,7 @@ export default function Page() {
   const [user, setUser] = useState(null)
   const [userName, setUserName] = useState(null)
   const [loadingUser, setLoadingUser] = useState(true)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter();
 
   const handleGroundCreated = (data) => {
@@ -799,92 +801,661 @@ export default function Page() {
     >
 
       {/* SIDEBAR */}
-      <div className="w-full md:w-64 bg-white/80 backdrop-blur-md border-r border-gray-200 p-4 md:p-8 text-gray-700 flex md:flex-col flex-row md:items-start items-center justify-between md:justify-start md:sticky md:top-0 md:h-screen">
+{/* =========================================================
+    RESPONSIVE SIDEBAR
+========================================================= */}
 
-        {/* Logo / brand */}
-        <div className="p-4 md:p-6 md:pb-4 flex items-center gap-3 md:border-b md:border-gray-100">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-green-500/25 flex-shrink-0">
-            M
-          </div>
-          <div className="hidden md:block">
-            <h1 className="text-gray-900 font-black text-lg tracking-tight leading-tight">MAIDAN</h1>
-            <p className="text-[11px] text-gray-400 font-medium">Ground Management</p>
-          </div>
-        </div>
+{/* MOBILE HEADER */}
+{/* =========================================================
+    RESPONSIVE SIDEBAR
+    STYLING MATCHES ADMIN SIDEBAR
+    FUNCTIONALITY REMAINS THE SAME
+========================================================= */}
 
-        <nav className="flex-1 flex flex-col justify-between md:w-full md:px-4 md:py-6 px-2">
-          <div>
-            <p className="hidden md:block text-[11px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-3">Menu</p>
-            <div className="space-y-1">
-              {NAV_ITEMS.map(item => {
-                const active = isActive(item)
-                return (
-                  <button
-                    key={item.key}
-                    onClick={() => {
-                      if (item.key === 'my-grounds') setEditingGroundId(null)
-                      setPage(item.key)
-                    }}
-                    className={`relative w-full text-left px-3 py-2.5 md:px-4 md:py-3 rounded-xl transition-all text-sm md:text-base flex items-center gap-3 ${active ? 'bg-green-50 text-green-700 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
-                  >
-                    {active && (
-                      <span className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-green-500 rounded-r-full" />
-                    )}
-                    <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-base flex-shrink-0 ${active ? 'bg-green-100' : 'bg-gray-100'}`}>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+{/* =========================================================
+    MOBILE HEADER
+========================================================= */}
 
-          {/* User profile + logout */}
-          <div className="hidden md:block mt-6 pt-4 border-t border-gray-100">
-            {loadingUser ? (
-              <div className="flex items-center gap-3 px-2 py-2 animate-pulse">
-                <div className="w-9 h-9 rounded-full bg-gray-200 flex-shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <div className="h-3 bg-gray-200 rounded w-2/3" />
-                  <div className="h-2.5 bg-gray-100 rounded w-1/2" />
-                </div>
-              </div>
-            ) : (
-              <button
-                onClick={() => setPage('settings')}
-                className="w-full flex items-center gap-3 px-2 py-2 mb-2 rounded-xl hover:bg-gray-50 transition-colors text-left"
-              >
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                  {(userName || 'U').charAt(0).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{userName || 'User'}</p>
-                  <p className="text-xs text-gray-400 truncate">{user?.email || 'Ground Owner'}</p>
-                </div>
-              </button>
-            )}
+<div className="lg:hidden sticky top-0 z-50 w-full bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_4px_20px_rgba(15,23,42,0.04)]">
+
+  <div className="h-16 px-4 flex items-center justify-between">
+
+    {/* Logo */}
+    <Link
+      href="/"
+      className="flex items-center"
+    >
+      <img
+        src="/Maidaan-logo-colored.jpg"
+        alt="Maidan"
+        className="h-9 w-28 object-contain"
+      />
+    </Link>
+
+    {/* Hamburger */}
+    <button
+      onClick={() =>
+        setMobileMenuOpen(prev => !prev)
+      }
+      className="
+        flex
+        h-10
+        w-10
+        items-center
+        justify-center
+        rounded-xl
+        border
+        border-slate-200
+        bg-slate-50
+        text-slate-700
+        transition-all
+        hover:border-emerald-200
+        hover:bg-emerald-50
+        hover:text-emerald-700
+      "
+      aria-label="Toggle menu"
+    >
+      {mobileMenuOpen ? (
+        <svg
+          width="19"
+          height="19"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <path d="M6 6l12 12" />
+          <path d="M18 6L6 18" />
+        </svg>
+      ) : (
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        >
+          <path d="M4 6h16" />
+          <path d="M4 12h16" />
+          <path d="M4 18h16" />
+        </svg>
+      )}
+    </button>
+
+  </div>
+
+
+  {/* =====================================================
+      MOBILE MENU
+  ===================================================== */}
+
+  {mobileMenuOpen && (
+    <div
+      className="
+        border-t
+        border-slate-100
+        bg-white
+        px-3
+        py-4
+        shadow-lg
+      "
+    >
+
+      {/* Menu heading */}
+      <p
+        className="
+          px-3
+          mb-3
+          text-[10px]
+          font-extrabold
+          uppercase
+          tracking-[0.16em]
+          text-slate-400
+        "
+      >
+        Menu
+      </p>
+
+
+      <div className="space-y-1">
+
+        {NAV_ITEMS.map(item => {
+
+          const active = isActive(item)
+
+          return (
             <button
-              onClick={handleLogout}
-              className="w-full text-left px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 hover:text-red-600 transition-all text-sm flex items-center gap-3"
+              key={item.key}
+              onClick={() => {
+
+                if (item.key === 'my-grounds') {
+                  setEditingGroundId(null)
+                }
+
+                setPage(item.key)
+                setMobileMenuOpen(false)
+              }}
+              className={`
+                relative
+                flex
+                w-full
+                items-center
+                gap-3
+                rounded-xl
+                px-3
+                py-2.5
+                text-left
+                text-sm
+                font-semibold
+                transition-all
+
+                ${
+                  active
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                }
+              `}
             >
-              <span className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-base flex-shrink-0">🚪</span>
-              <span>Logout</span>
+
+              {/* Active indicator */}
+              {active && (
+                <span
+                  className="
+                    absolute
+                    left-0
+                    top-1/2
+                    h-6
+                    w-1
+                    -translate-y-1/2
+                    rounded-r-full
+                    bg-emerald-500
+                  "
+                />
+              )}
+
+
+              {/* Icon box */}
+              <span
+                className={`
+                  flex
+                  h-9
+                  w-9
+                  shrink-0
+                  items-center
+                  justify-center
+                  rounded-lg
+                  text-base
+                  transition-all
+
+                  ${
+                    active
+                      ? 'bg-white text-emerald-600 shadow-sm'
+                      : 'bg-slate-50 text-slate-400'
+                  }
+                `}
+              >
+                {item.icon}
+              </span>
+
+
+              {/* Label */}
+              <span>
+                {item.label}
+              </span>
+
+
+              {/* Active dot */}
+              {active && (
+                <span
+                  className="
+                    absolute
+                    right-3
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-emerald-500
+                  "
+                />
+              )}
+
             </button>
-          </div>
-
-          {/* Mobile-only compact logout */}
-          <button
-            onClick={handleLogout}
-            className="md:hidden text-left px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all text-sm flex items-center gap-2"
-          >
-            <span>🚪</span> <span>Logout</span>
-          </button>
-
-        </nav>
+          )
+        })}
 
       </div>
 
+
+      {/* Mobile profile */}
+      <div className="mt-5 border-t border-slate-100 pt-4">
+
+        <div
+          className="
+            mb-3
+            flex
+            items-center
+            gap-3
+            rounded-xl
+            bg-slate-50
+            p-3
+          "
+        >
+
+          <div
+            className="
+              flex
+              h-9
+              w-9
+              shrink-0
+              items-center
+              justify-center
+              rounded-full
+              bg-emerald-600
+              text-xs
+              font-extrabold
+              text-white
+              shadow-sm
+              shadow-emerald-600/20
+            "
+          >
+            {(userName || 'U')
+              .charAt(0)
+              .toUpperCase()}
+          </div>
+
+          <div className="min-w-0">
+
+            <p className="truncate text-xs font-bold text-slate-800">
+              {userName || 'User'}
+            </p>
+
+            <p className="truncate text-[10px] text-slate-400">
+              {user?.email || 'Ground Owner'}
+            </p>
+
+          </div>
+
+        </div>
+
+
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          className="
+            flex
+            w-full
+            items-center
+            gap-3
+            rounded-xl
+            px-3
+            py-2.5
+            text-sm
+            font-semibold
+            text-red-500
+            transition-all
+            hover:bg-red-50
+            hover:text-red-600
+          "
+        >
+
+          <span
+            className="
+              flex
+              h-8
+              w-8
+              shrink-0
+              items-center
+              justify-center
+              rounded-lg
+              bg-red-50
+              text-red-500
+            "
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <path d="m16 17 5-5-5-5" />
+              <path d="M21 12H9" />
+            </svg>
+          </span>
+
+          <span>
+            Logout
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+  )}
+
+</div>
+
+
+{/* =========================================================
+    DESKTOP SIDEBAR
+========================================================= */}
+
+<aside
+  className="
+    hidden
+    lg:flex
+    fixed
+    inset-y-0
+    left-0
+    z-40
+    w-[245px]
+    flex-col
+    border-r
+    border-slate-200/80
+    bg-white/95
+    px-4
+    py-6
+    shadow-[4px_0_25px_rgba(15,23,42,0.025)]
+    backdrop-blur-xl
+  "
+>
+
+  {/* =====================================================
+      LOGO
+  ===================================================== */}
+
+  <div className="px-3 pb-8">
+
+    <Link
+      href="/"
+      className="flex items-center"
+    >
+      <img
+        src="/Maidaan-logo-colored.jpg"
+        alt="Maidan"
+        className="h-12 w-32 object-contain object-left"
+      />
+    </Link>
+
+    <p className="mt-1 text-[10px] font-semibold text-slate-400">
+      Ground Management
+    </p>
+
+  </div>
+
+
+  {/* =====================================================
+      MENU
+  ===================================================== */}
+
+  <div className="mb-3 px-3">
+
+    <p
+      className="
+        text-[10px]
+        font-extrabold
+        uppercase
+        tracking-[0.16em]
+        text-slate-400
+      "
+    >
+      Menu
+    </p>
+
+  </div>
+
+
+  {/* =====================================================
+      NAVIGATION
+  ===================================================== */}
+
+  <nav className="flex-1 space-y-1">
+
+    {NAV_ITEMS.map(item => {
+
+      const active = isActive(item)
+
+      return (
+        <button
+          key={item.key}
+          onClick={() => {
+
+            if (item.key === 'my-grounds') {
+              setEditingGroundId(null)
+            }
+
+            setPage(item.key)
+          }}
+          className={`
+            group
+            relative
+            flex
+            w-full
+            items-center
+            gap-3
+            rounded-xl
+            px-3
+            py-2.5
+            text-left
+            text-sm
+            font-semibold
+            transition-all
+
+            ${
+              active
+                ? 'bg-emerald-50 text-emerald-700 shadow-sm'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            }
+          `}
+        >
+
+          {/* Active left indicator */}
+          {active && (
+            <span
+              className="
+                absolute
+                left-0
+                top-1/2
+                h-6
+                w-1
+                -translate-y-1/2
+                rounded-r-full
+                bg-emerald-500
+              "
+            />
+          )}
+
+
+          {/* Icon */}
+          <span
+            className={`
+              flex
+              h-9
+              w-9
+              shrink-0
+              items-center
+              justify-center
+              rounded-lg
+              text-base
+              transition-all
+
+              ${
+                active
+                  ? 'bg-white text-emerald-600 shadow-sm'
+                  : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'
+              }
+            `}
+          >
+            {item.icon}
+          </span>
+
+
+          {/* Label */}
+          <span>
+            {item.label}
+          </span>
+
+
+          {/* Active dot */}
+          {active && (
+            <span
+              className="
+                absolute
+                right-3
+                h-1.5
+                w-1.5
+                rounded-full
+                bg-emerald-500
+              "
+            />
+          )}
+
+        </button>
+      )
+    })}
+
+  </nav>
+
+
+  {/* =====================================================
+      USER / LOGOUT
+  ===================================================== */}
+
+  <div className="mt-auto border-t border-slate-100 pt-4">
+
+    {/* User profile */}
+    <div
+      className="
+        mb-3
+        flex
+        items-center
+        gap-3
+        rounded-xl
+        bg-slate-50
+        p-3
+      "
+    >
+
+      <div
+        className="
+          flex
+          h-9
+          w-9
+          shrink-0
+          items-center
+          justify-center
+          rounded-full
+          bg-emerald-600
+          text-xs
+          font-extrabold
+          text-white
+          shadow-sm
+          shadow-emerald-600/20
+        "
+      >
+        {(userName || 'U')
+          .charAt(0)
+          .toUpperCase()}
+      </div>
+
+
+      <div className="min-w-0">
+
+        <p className="truncate text-xs font-bold text-slate-800">
+          {userName || 'User'}
+        </p>
+
+        <p className="truncate text-[10px] text-slate-400">
+          {user?.email || 'Ground Owner'}
+        </p>
+
+      </div>
+
+    </div>
+
+
+    {/* Logout */}
+    <button
+      onClick={handleLogout}
+      className="
+        group
+        flex
+        w-full
+        items-center
+        gap-3
+        rounded-xl
+        px-3
+        py-2.5
+        text-sm
+        font-semibold
+        text-red-500
+        transition-all
+        hover:bg-red-50
+        hover:text-red-600
+      "
+    >
+
+      <span
+        className="
+          flex
+          h-8
+          w-8
+          shrink-0
+          items-center
+          justify-center
+          rounded-lg
+          bg-red-50
+          text-red-500
+          transition
+          group-hover:bg-red-100
+        "
+      >
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="m16 17 5-5-5-5" />
+          <path d="M21 12H9" />
+        </svg>
+      </span>
+
+      <span>
+        Logout
+      </span>
+
+    </button>
+
+  </div>
+
+</aside>
+
       {/* CONTENT */}
-      <div className="flex-1 p-4 md:p-10 overflow-y-auto">
+      <div
+  className="
+    flex-1
+    min-w-0
+    overflow-y-auto
+    p-4
+    sm:p-6
+    lg:p-8
+    xl:p-10
+    lg:ml-[245px]
+  "
+>
 
         {/* DASHBOARD PAGE */}
         {page === 'dashboard' && (

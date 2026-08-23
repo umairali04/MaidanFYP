@@ -68,6 +68,7 @@ export default function MyBookingsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+  const fetchBookings = async () => {
     const token = getToken()
 
     if (!token) {
@@ -75,17 +76,66 @@ export default function MyBookingsPage() {
       return
     }
 
-    fetch(`${BASE_URL}/api/bookings/my`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then(r => r.json())
-      .then(d => {
-        if (d.success) setBookings(d.bookings)
+    try {
+      setLoading(true)
+      setError('')
+
+      const res = await fetch(`${BASE_URL}/api/bookings/my`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
-      .finally(() => setLoading(false))
-  }, [router])
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(
+          data?.message || 'Failed to load bookings'
+        )
+      }
+
+      /*
+       * Different APIs sometimes return:
+       *
+       * { success: true, bookings: [...] }
+       *
+       * or
+       *
+       * { success: true, data: [...] }
+       *
+       * or directly:
+       *
+       * [...]
+       *
+       * Always normalize the result to an array.
+       */
+
+      const bookingList = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.bookings)
+          ? data.bookings
+          : Array.isArray(data?.data)
+            ? data.data
+            : []
+
+      setBookings(bookingList)
+
+    } catch (err) {
+      console.error('MY BOOKINGS ERROR:', err)
+
+      setBookings([])
+
+      setError(
+        err.message || 'Failed to load your bookings.'
+      )
+
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  fetchBookings()
+}, [router])
 
   function handlePayNow(booking) {
     setActiveBooking(booking)

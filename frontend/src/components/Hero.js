@@ -186,7 +186,7 @@ export default function Hero() {
             >
               Explore Sports
             </button>
-            <button className="px-7 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl text-sm hover:border-emerald-600 hover:text-emerald-600 transition-all duration-200 bg-white cursor-pointer">
+            <button onClick={() => router.push('/how-it-works')} className="px-7 py-3 border border-gray-200 text-gray-700 font-semibold rounded-xl text-sm hover:border-emerald-600 hover:text-emerald-600 transition-all duration-200 bg-white cursor-pointer">
               How It Works
             </button>
           </div>

@@ -5,6 +5,7 @@ import ChooseUs from "@/components/ChooseUs";
 import PopularGrounds from "@/components/PopularGrounds";
 import Footer from "@/components/Footer";
 import Facilities from "@/components/Facilities";
+import SlotRecommendations from "@/components/SlotRecommendations";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <PopularGrounds />
       {/* <Banner /> */}
       {/* <Facilities /> */}
+      <SlotRecommendations defaultLimit={6} />
       <ChooseUs />
       <Footer />
     </>

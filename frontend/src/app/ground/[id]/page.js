@@ -105,28 +105,56 @@ export default function GroundDetailPage() {
       const duration = ((endH * 60 + endM) - (startH * 60 + startM)) / 60
 
       const res = await fetch(`${BASE_URL}/api/bookings`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          groundId: id,
-          bookingDate: selectedDate,
-          startTime: slot.start,
-          endTime: slot.end,
-          duration,
-          totalPrice: ground.pricePerHour * duration,
-        }),
-      })
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({
+    groundId: id,
+    bookingDate: selectedDate,
+    startTime: slot.start,
+    endTime: slot.end,
+    duration,
+    totalPrice: ground.pricePerHour * duration,
+  }),
+})
 
-      const data = await res.json()
+/*
+ * Read as text first.
+ * This prevents JSON.parse() from crashing when
+ * the backend sends HTML instead of JSON.
+ */
+const responseText = await res.text()
 
-      if (!res.ok) {
-        throw new Error(data.message || 'Booking failed')
-      }
+let data
 
-      createdBookings.push(data.booking)
+try {
+  data = JSON.parse(responseText)
+} catch (parseError) {
+  console.error('BOOKING API RETURNED NON-JSON:', responseText)
+
+  throw new Error(
+    `Booking API returned an invalid response (${res.status}).`
+  )
+}
+
+if (!res.ok) {
+  throw new Error(
+    data?.message ||
+    data?.error ||
+    'Booking failed'
+  )
+}
+
+if (!data?.booking) {
+  throw new Error(
+    data?.message ||
+    'Booking was not created. Invalid server response.'
+  )
+}
+
+createdBookings.push(data.booking)
     }
 
     setCreatedBooking(createdBookings)

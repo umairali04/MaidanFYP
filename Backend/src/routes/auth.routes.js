@@ -12,6 +12,7 @@ import {
 } from "../controllers/auth.controller.js";
 
 import { verifyToken } from "../middleware/auth.middleware.js";
+import { upload } from "../middleware/upload.js";
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.post("/reset-password", resetPassword);
 // PROTECTED ROUTES (need token)
 // ============================================
 router.get("/me", verifyToken, getMe);
-router.put("/update-profile", verifyToken, updateProfile);
+router.put("/update-profile", verifyToken, upload.single("image"), updateProfile);
 router.put("/change-password", verifyToken, changePassword);
 
 export default router;

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../utils/prisma.js";
 import { generateOTP } from "../utils/otp.js";
 import { sendOTPEmail } from "../utils/mailer.js";
+import cloudinary from "../utils/cloudinary.js";
 
 // ============================================
 // SIGNUP
@@ -325,16 +326,59 @@ export const getMe = async (req, res) => {
 // ============================================
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone } = req.body
+    const { name, phone } = req.body;
+
+    const updateData = {
+      name,
+      phone,
+    };
+
+    // Upload profile picture if one was selected
+    if (req.file) {
+      const uploadResult = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          {
+            folder: "maidan/profiles",
+            public_id: req.user.id,
+            overwrite: true,
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+
+        stream.end(req.file.buffer);
+      });
+
+      // Save Cloudinary URL in database
+      updateData.image = uploadResult.secure_url;
+    }
+
     const user = await prisma.user.update({
-      where: { id: req.user.id },
-      data: { name, phone }
-    })
-    res.json({ success: true, message: "Profile updated", user })
+      where: {
+        id: req.user.id,
+      },
+      data: updateData,
+    });
+
+    res.json({
+      success: true,
+      message: "Profile updated",
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    console.error("Update profile error:", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
   }
-}
+};
 
 // ============================================
 // CHANGE PASSWORD

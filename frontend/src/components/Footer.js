@@ -1,103 +1,206 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
-    <footer className="bg-[#0f0f0f] text-white py-10 px-5">
-      <div className="max-w-7xl mx-auto">
+    <footer className="relative overflow-hidden bg-[#071a13] text-white">
 
-        {/* Top */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-8">
+      {/* =====================================================
+          BACKGROUND DECORATION
+      ===================================================== */}
 
-          {/* Brand */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
+
+        <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl" />
+
+        <div className="absolute bottom-0 left-1/2 h-64 w-96 -translate-x-1/2 rounded-full bg-green-500/5 blur-3xl" />
+      </div>
+
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-10">
+
+        {/* ===================================================
+            MAIN FOOTER
+        =================================================== */}
+
+        <div className="grid grid-cols-1 gap-7 py-7 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1.1fr] lg:gap-8 lg:py-9">
+
+
+          {/* =================================================
+              BRAND
+          ================================================= */}
+
           <div>
-            <h3 className="text-3xl font-bold text-emerald-400 mb-3">
-              Maidan
-            </h3>
 
-            <p className="text-gray-400 text-sm leading-6 max-w-xs">
+            <Link
+              href="/"
+              className="inline-flex items-center"
+            >
+              <img
+                src="/Maidaan-logo-white.png"
+                alt="Maidan"
+                className="h-9 w-28 object-contain object-left"
+              />
+            </Link>
+
+            <p
+              className="
+                mt-3
+                max-w-sm
+                text-sm
+                leading-6
+                text-slate-400
+              "
+            >
               Pakistan's easiest way to discover and book sports grounds.
               Play football, cricket, tennis, badminton and much more.
             </p>
 
-            <div className="flex items-center gap-3 mt-5">
 
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-emerald-500 hover:border-emerald-500 transition-all duration-300"
+            {/* Brand badge */}
+            <div
+              className="
+                mt-4
+                inline-flex
+                items-center
+                gap-2
+                rounded-xl
+                border
+                border-white/10
+                bg-white/[0.04]
+                px-3
+                py-2
+              "
+            >
+              <span
+                className="
+                  flex
+                  h-7
+                  w-7
+                  items-center
+                  justify-center
+                  rounded-lg
+                  bg-emerald-500
+                  text-xs
+                  font-black
+                  text-[#06130e]
+                "
               >
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
-              </a>
+                M
+              </span>
 
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-emerald-500 hover:border-emerald-500 transition-all duration-300"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                >
-                  <rect x="2" y="2" width="20" height="20" rx="5" />
-                  <circle cx="12" cy="12" r="4" />
-                  <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" />
-                </svg>
-              </a>
-
-              <a
-                href="#"
-                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-emerald-500 hover:border-emerald-500 transition-all duration-300"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-              </a>
-
+              <span className="text-xs font-semibold text-slate-300">
+                Built for the love of sport
+              </span>
             </div>
+
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h4 className="text-white font-semibold mb-4 uppercase tracking-wider text-sm">
-              Quick Links
-            </h4>
 
-            <ul className="space-y-2">
-              {[
-                "Home",
-                "Explore Grounds",
-                "Sports",
-                "How It Works",
-                "Pricing",
-              ].map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
-                    className="text-gray-400 hover:text-emerald-400 transition-colors text-sm"
-                  >
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* =================================================
+              QUICK LINKS
+          ================================================= */}
 
-          {/* Sports */}
+          {/* =================================================
+    QUICK LINKS
+================================================= */}
+
+<div>
+
+  <h4
+    className="
+      mb-3
+      text-xs
+      font-extrabold
+      uppercase
+      tracking-[0.16em]
+      text-white
+    "
+  >
+    Quick Links
+  </h4>
+
+  <ul className="space-y-2">
+
+    {[
+      {
+        name: "Home",
+        href: "/",
+      },
+      {
+        name: "Explore Grounds",
+        href: "/grounds",
+      },
+      {
+        name: "How It Works",
+        href: "/how-it-works",
+      },
+      {
+        name: "Contact Us",
+        href: "/contact",
+      },
+    ].map((item) => (
+      <li key={item.name}>
+
+        <Link
+          href={item.href}
+          className="
+            group
+            inline-flex
+            items-center
+            gap-2
+            text-sm
+            text-slate-400
+            transition-colors
+            hover:text-emerald-400
+          "
+        >
+
+          <span
+            className="
+              h-1
+              w-1
+              rounded-full
+              bg-slate-600
+              transition-all
+              group-hover:w-2
+              group-hover:bg-emerald-400
+            "
+          />
+
+          {item.name}
+
+        </Link>
+
+      </li>
+    ))}
+
+  </ul>
+
+</div>
+
+
+          {/* =================================================
+              SPORTS
+          ================================================= */}
+
           <div>
-            <h4 className="text-white font-semibold mb-4 uppercase tracking-wider text-sm">
+
+            <h4
+              className="
+                mb-5
+                text-xs
+                font-extrabold
+                uppercase
+                tracking-[0.16em]
+                text-white
+              "
+            >
               Sports
             </h4>
 
-            <ul className="space-y-2">
+            <ul className="space-y-3">
+
               {[
                 "Football",
                 "Cricket",
@@ -107,90 +210,276 @@ export default function Footer() {
                 "Tennis",
               ].map((sport) => (
                 <li key={sport}>
+
                   <a
                     href="#"
-                    className="text-gray-400 hover:text-emerald-400 transition-colors text-sm"
+                    className="
+                      group
+                      inline-flex
+                      items-center
+                      gap-2
+                      text-sm
+                      text-slate-400
+                      transition-colors
+                      hover:text-emerald-400
+                    "
                   >
+                    <span
+                      className="
+                        h-1
+                        w-1
+                        rounded-full
+                        bg-slate-600
+                        transition-all
+                        group-hover:w-2
+                        group-hover:bg-emerald-400
+                      "
+                    />
+
                     {sport}
                   </a>
+
                 </li>
               ))}
+
             </ul>
+
           </div>
 
-          {/* Contact */}
+
+          {/* =================================================
+              CONTACT
+          ================================================= */}
+
           <div>
-            <h4 className="text-white font-semibold mb-4 uppercase tracking-wider text-sm">
+
+            <h4
+              className="
+                mb-5
+                text-xs
+                font-extrabold
+                uppercase
+                tracking-[0.16em]
+                text-white
+              "
+            >
               Contact
             </h4>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
 
+
+              {/* Location */}
               <div className="flex items-start gap-3">
-                <span className="text-emerald-400">📍</span>
-                <p className="text-gray-400 text-sm">
-                  Islamabad, Pakistan
-                </p>
+
+                <div
+                  className="
+                    flex
+                    h-9
+                    w-9
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-xl
+                    border
+                    border-emerald-400/10
+                    bg-emerald-400/10
+                    text-sm
+                  "
+                >
+                  📍
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold text-slate-300">
+                    Location
+                  </p>
+
+                  <p className="mt-0.5 text-xs leading-5 text-slate-500">
+                    Islamabad, Pakistan
+                  </p>
+                </div>
+
               </div>
 
+
+              {/* Email */}
               <div className="flex items-start gap-3">
-                <span className="text-emerald-400">📧</span>
-                <a
-                  href="mailto:support@maidan.pk"
-                  className="text-gray-400 hover:text-emerald-400 transition-colors text-sm"
+
+                <div
+                  className="
+                    flex
+                    h-9
+                    w-9
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-xl
+                    border
+                    border-emerald-400/10
+                    bg-emerald-400/10
+                    text-sm
+                  "
                 >
-                  support@maidan.pk
-                </a>
+                  ✉
+                </div>
+
+                <div className="min-w-0">
+
+                  <p className="text-xs font-semibold text-slate-300">
+                    Email
+                  </p>
+
+                  <a
+                    href="mailto:contact@maidan.pk"
+                    className="
+                      mt-0.5
+                      block
+                      truncate
+                      text-xs
+                      leading-5
+                      text-slate-500
+                      transition
+                      hover:text-emerald-400
+                    "
+                  >
+                    contact@maidan.com
+                  </a>
+
+                </div>
+
               </div>
 
+
+              {/* Phone */}
               <div className="flex items-start gap-3">
-                <span className="text-emerald-400">📞</span>
-                <a
-                  href="tel:+923001234567"
-                  className="text-gray-400 hover:text-emerald-400 transition-colors text-sm"
+
+                <div
+                  className="
+                    flex
+                    h-9
+                    w-9
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-xl
+                    border
+                    border-emerald-400/10
+                    bg-emerald-400/10
+                    text-sm
+                  "
                 >
-                  +92 300 1234567
-                </a>
+                  ☎
+                </div>
+
+                <div>
+
+                  <p className="text-xs font-semibold text-slate-300">
+                    Phone
+                  </p>
+
+                  <a
+                    href="tel:+923001234567"
+                    className="
+                      mt-0.5
+                      block
+                      text-xs
+                      leading-5
+                      text-slate-500
+                      transition
+                      hover:text-emerald-400
+                    "
+                  >
+                    +92 300 1234567
+                  </a>
+
+                </div>
+
               </div>
 
             </div>
+
           </div>
 
         </div>
 
-        {/* Bottom */}
-        <div className="border-t border-white/10 pt-5 flex flex-col md:flex-row items-center justify-between gap-4">
 
-          <p className="text-gray-500 text-sm text-center md:text-left">
+        {/* ===================================================
+            BOTTOM
+        =================================================== */}
+
+        <div
+          className="
+            flex
+            flex-col
+            gap-5
+            border-t
+            border-white/10
+            py-4
+            md:flex-row
+            md:items-center
+            md:justify-between
+          "
+        >
+
+          {/* Copyright */}
+          <p className="text-center text-xs text-slate-500 md:text-left">
             © {new Date().getFullYear()} Maidan. All rights reserved.
           </p>
 
-          <div className="flex items-center gap-6 text-sm">
+
+          {/* Bottom links */}
+          <div
+            className="
+              flex
+              flex-wrap
+              items-center
+              justify-center
+              gap-x-6
+              gap-y-2
+              text-xs
+              md:justify-end
+            "
+          >
+
             <a
               href="#"
-              className="text-gray-500 hover:text-emerald-400 transition-colors"
+              className="
+                text-slate-500
+                transition
+                hover:text-emerald-400
+              "
             >
               Privacy Policy
             </a>
 
             <a
               href="#"
-              className="text-gray-500 hover:text-emerald-400 transition-colors"
+              className="
+                text-slate-500
+                transition
+                hover:text-emerald-400
+              "
             >
               Terms & Conditions
             </a>
 
             <a
               href="#"
-              className="text-gray-500 hover:text-emerald-400 transition-colors"
+              className="
+                text-slate-500
+                transition
+                hover:text-emerald-400
+              "
             >
               Support
             </a>
+
           </div>
 
         </div>
 
       </div>
     </footer>
-  )
+  );
 }

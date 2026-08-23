@@ -1,5 +1,7 @@
 // controllers/owner.controller.js - SIMPLIFIED & BULLETPROOF
 import prisma from '../utils/prisma.js'
+import bcrypt from 'bcrypt'
+import cloudinary from '../utils/cloudinary.js'
 
 export const getOwnerStats = async (req, res) => {
   try {
@@ -20,22 +22,20 @@ export const getOwnerStats = async (req, res) => {
 
     // 3. BOOKINGS
     const totalBookingsAllTime = await prisma.booking.count({
-      where: {
-        groundId: { in: groundIds },
-        status: 'CONFIRMED',
-      },
-    })
+  where: {
+    groundId: { in: groundIds },
+  },
+})
 
-    const totalBookingsThisMonth = await prisma.booking.count({
-      where: {
-        groundId: { in: groundIds },
-        status: 'CONFIRMED',
-        bookingDate: {
-          gte: startOfMonth,
-          lte: endOfMonth,
-        },
-      },
-    })
+const totalBookingsThisMonth = await prisma.booking.count({
+  where: {
+    groundId: { in: groundIds },
+    bookingDate: {
+      gte: startOfMonth,
+      lte: endOfMonth,
+    },
+  },
+})
 
     // 🔥 4. REVENUE - SIMPLEST METHOD (fetch all & sum manually)
     const allPayments = await prisma.payment.findMany({
@@ -242,3 +242,160 @@ export const debugRevenue = async (req, res) => {
     })),
   })
 }
+
+export const getOwnerProfile = async (req, res) => {
+  try {
+    const userId = req.user.id
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        image: true,
+      },
+    })
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'Owner profile not found',
+      })
+    }
+
+    return res.status(200).json(user)
+
+  } catch (error) {
+    console.error('GET OWNER PROFILE ERROR 👉', error)
+
+    return res.status(500).json({
+      message: error.message,
+    })
+  }
+}
+
+
+// Update owner profile
+export const updateOwnerProfile = async (req, res) => {
+  try {
+    const userId = req.user.id
+
+    const {
+      name,
+      phone,
+    } = req.body
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({
+        message: 'Name is required',
+      })
+    }
+
+    const updateData = {
+      name: name.trim(),
+      phone: phone?.trim() || null,
+    }
+
+    // Upload new profile image if selected
+    if (req.file) {
+      const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`
+
+      const result = await cloudinary.uploader.upload(fileStr, {
+        folder: 'profiles',
+      })
+
+      updateData.image = result.secure_url
+    }
+
+    const user = await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: updateData,
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        image: true,
+      },
+    })
+
+    return res.status(200).json({
+      message: 'Profile updated successfully',
+      user,
+    })
+
+  } catch (error) {
+    console.error('UPDATE OWNER PROFILE ERROR 👉', error)
+
+    return res.status(500).json({
+      message: error.message,
+    })
+  }
+}
+
+
+// Change owner password
+export const updateOwnerPassword = async (req, res) => {
+  try {
+    const userId = req.user.id
+
+    const {
+      currentPassword,
+      newPassword,
+    } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: 'Current password and new password are required',
+      })
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    })
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found',
+      })
+    }
+
+    const passwordMatches = await bcrypt.compare(
+      currentPassword,
+      user.password
+    )
+
+    if (!passwordMatches) {
+      return res.status(400).json({
+        message: 'Current password is incorrect',
+      })
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+    await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    })
+
+    return res.status(200).json({
+      message: 'Password updated successfully',
+    })
+  } catch (error) {
+    console.error('UPDATE OWNER PASSWORD ERROR 👉', error)
+
+    return res.status(500).json({
+      message: error.message,
+    })
+  }
+}
+

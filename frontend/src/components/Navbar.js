@@ -2,9 +2,11 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import NotificationBell from './NotificationBell'
+import MessagesBell from './MessagesBell'
 
 
-export default function Navbar({ transparent = false }) {
+export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [user, setUser] = useState(null)
@@ -12,33 +14,39 @@ export default function Navbar({ transparent = false }) {
   const router = useRouter()
 
   useEffect(() => {
+  async function loadUser() {
     const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1]
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
 
-    if (!token) return
+    if (!token) return;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      const email = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('email='))
-        ?.split('=')[1]
-      const name = document.cookie
-        .split('; ')
-        .find(row => row.startsWith('name='))
-        ?.split('=')[1]
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      setUser({
-        name: name ? decodeURIComponent(name) : 'User',
-        email: email ? decodeURIComponent(email) : '',
-        role: payload.role,
-      })
-    } catch (e) {
-      setUser(null)
+      const data = await res.json();
+
+      if (res.ok && data.user) {
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Failed to load user:", error);
+      setUser(null);
     }
-  }, [])
+  }
+
+  loadUser();
+}, []);
 
   useEffect(() => {
     function handleClickOutside(e) {
@@ -57,6 +65,7 @@ export default function Navbar({ transparent = false }) {
     document.cookie = 'name=; Max-Age=0; path=/'
     setUser(null)
     setDropdownOpen(false)
+    router.push('/login')
   }
 
   const initials = user?.name
@@ -70,7 +79,9 @@ export default function Navbar({ transparent = false }) {
   { name: 'Home', path: '/' },
   { name: 'Facilities', path: '/sports' },
   { name: 'Search Players', path: '/search_players' },
+  { name: 'Connections', path: '/connections' },
   { name: 'Contact Us', path: '/contact' },
+  
 ];
 
   return (
@@ -78,17 +89,12 @@ export default function Navbar({ transparent = false }) {
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-10 py-4">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <rect width="28" height="28" rx="8" fill="#1a6b3c"/>
-              <path d="M7 14h14M14 7v14" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/>
-              <circle cx="14" cy="14" r="4" stroke="#fff" strokeWidth="1.5"/>
-            </svg>
-          </div>
-          <span className="text-gray-900 text-xl font-bold tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
-            Maidan
-          </span>
+        <Link href="/" className="group flex items-center gap-2.5">
+          <img
+            src="/Maidaan-logo-colored.jpg"
+            alt="Maidan"
+            className="h-12 w-40 object-contain"
+          />
         </Link>
 
         {/* Desktop Actions */}
@@ -118,6 +124,13 @@ export default function Navbar({ transparent = false }) {
             </>
           ) : (
             <>
+             {user?.role !== "GROUND_OWNER" && (
+                <>
+                  <MessagesBell />
+                  <NotificationBell />
+                </>
+              )}
+
               {user?.role === "GROUND_OWNER" && (
                 <Link href="/ground_owner_dashboard">
                   <button className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">
@@ -128,11 +141,19 @@ export default function Navbar({ transparent = false }) {
               {/* Avatar Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="w-9 h-9 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center hover:bg-emerald-700 transition-all cursor-pointer ring-2 ring-emerald-100"
-                >
-                  {initials}
-                </button>
+    onClick={() => setDropdownOpen(!dropdownOpen)}
+    className="flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-xs font-bold text-white ring-2 ring-emerald-100 transition-all hover:bg-emerald-700"
+  >
+    {user?.image ? (
+      <img
+        src={user.image}
+        alt={user.name || "Profile"}
+        className="h-full w-full object-cover"
+      />
+    ) : (
+      initials
+    )}
+  </button>
 
                 {dropdownOpen && (
                   <div className="absolute right-0 top-11 w-56 bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xl shadow-gray-100/80 z-50">
@@ -185,15 +206,15 @@ export default function Navbar({ transparent = false }) {
       <div className={`md:hidden overflow-hidden transition-all duration-300 ${menuOpen ? 'max-h-screen pb-4 border-t border-gray-100' : 'max-h-0'}`}>
         <div className="flex flex-col px-6 pt-4 gap-1">
           {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.path}
-              className="px-3 py-2.5 text-sm text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              {link.name}
-            </Link>
-          ))}
+  <Link
+    key={link.name}
+    href={link.path}
+    className="px-3 py-2.5 text-sm text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
+    onClick={() => setMenuOpen(false)}
+  >
+    {link.name}
+  </Link>
+))}
 
           {user ? (
             <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-1">
