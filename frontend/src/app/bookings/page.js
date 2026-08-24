@@ -46,6 +46,8 @@ function StatusBadge({ status }) {
   )
 }
 
+const BOOKINGS_PER_PAGE = 6
+
 export default function MyBookingsPage() {
   const router = useRouter()
 
@@ -67,8 +69,9 @@ export default function MyBookingsPage() {
 
   const [error, setError] = useState('')
 
+  const [currentPage, setCurrentPage] = useState(1)
+
   useEffect(() => {
-  const fetchBookings = async () => {
     const token = getToken()
 
     if (!token) {
@@ -76,66 +79,34 @@ export default function MyBookingsPage() {
       return
     }
 
-    try {
-      setLoading(true)
-      setError('')
-
-      const res = await fetch(`${BASE_URL}/api/bookings/my`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    fetch(`${BASE_URL}/api/bookings/my`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) setBookings(d.bookings)
       })
+      .finally(() => setLoading(false))
+  }, [router])
 
-      const data = await res.json()
+  const totalPages = Math.max(1, Math.ceil(bookings.length / BOOKINGS_PER_PAGE))
+  const paginatedBookings = bookings.slice(
+    (currentPage - 1) * BOOKINGS_PER_PAGE,
+    currentPage * BOOKINGS_PER_PAGE
+  )
 
-      if (!res.ok) {
-        throw new Error(
-          data?.message || 'Failed to load bookings'
-        )
-      }
-
-      /*
-       * Different APIs sometimes return:
-       *
-       * { success: true, bookings: [...] }
-       *
-       * or
-       *
-       * { success: true, data: [...] }
-       *
-       * or directly:
-       *
-       * [...]
-       *
-       * Always normalize the result to an array.
-       */
-
-      const bookingList = Array.isArray(data)
-        ? data
-        : Array.isArray(data?.bookings)
-          ? data.bookings
-          : Array.isArray(data?.data)
-            ? data.data
-            : []
-
-      setBookings(bookingList)
-
-    } catch (err) {
-      console.error('MY BOOKINGS ERROR:', err)
-
-      setBookings([])
-
-      setError(
-        err.message || 'Failed to load your bookings.'
-      )
-
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
     }
-  }
+  }, [totalPages, currentPage])
 
-  fetchBookings()
-}, [router])
+  function goToPage(page) {
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   function handlePayNow(booking) {
     setActiveBooking(booking)
@@ -296,79 +267,115 @@ export default function MyBookingsPage() {
               </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {bookings.map(b => (
-                <div
-                  key={b.id}
-                  className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
-                >
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-2 flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-bold text-gray-900">
-                          {b.ground?.name || 'Ground'}
-                        </h3>
-                        <StatusBadge status={b.status} />
+            <>
+              <div className="flex flex-col gap-4">
+                {paginatedBookings.map(b => (
+                  <div
+                    key={b.id}
+                    className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
+                  >
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-2 flex flex-wrap items-center gap-2">
+                          <h3 className="text-base font-bold text-gray-900">
+                            {b.ground?.name || 'Ground'}
+                          </h3>
+                          <StatusBadge status={b.status} />
+                        </div>
+
+                        <p className="mb-1 text-sm text-gray-500">
+                          📍 {b.ground?.location}, {b.ground?.city}
+                        </p>
+
+                        <p className="mb-1 text-sm text-gray-500">
+                          📅{' '}
+                          {new Date(b.bookingDate).toLocaleDateString('en-PK', {
+                            weekday: 'short',
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}{' '}
+                          ⏰ {b.startTime} – {b.endTime}
+                        </p>
+
+                        <p className="mt-2 text-base font-bold text-green-600">
+                          Rs. {b.totalPrice}
+                        </p>
+
+                        {b.payment && (
+                          <p
+                            className={`mt-1 text-xs font-semibold ${
+                              b.payment.paymentStatus === 'SUCCESS'
+                                ? 'text-green-600'
+                                : 'text-yellow-600'
+                            }`}
+                          >
+                            {b.payment.paymentStatus === 'SUCCESS'
+                              ? `✅ Paid via ${b.payment.method}`
+                              : '⏳ Payment Pending'}
+                          </p>
+                        )}
                       </div>
 
-                      <p className="mb-1 text-sm text-gray-500">
-                        📍 {b.ground?.location}, {b.ground?.city}
-                      </p>
+                      <div className="flex w-full flex-col gap-2 sm:w-40">
+                        {b.status === 'PENDING' &&
+                          b.payment?.paymentStatus !== 'SUCCESS' && (
+                            <button
+                              onClick={() => handlePayNow(b)}
+                              className="w-full rounded-xl bg-[#00ff88] px-4 py-2.5 text-sm font-bold text-black hover:brightness-110"
+                            >
+                              💳 Pay Now
+                            </button>
+                          )}
 
-                      <p className="mb-1 text-sm text-gray-500">
-                        📅{' '}
-                        {new Date(b.bookingDate).toLocaleDateString('en-PK', {
-                          weekday: 'short',
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}{' '}
-                        ⏰ {b.startTime} – {b.endTime}
-                      </p>
-
-                      <p className="mt-2 text-base font-bold text-green-600">
-                        Rs. {b.totalPrice}
-                      </p>
-
-                      {b.payment && (
-                        <p
-                          className={`mt-1 text-xs font-semibold ${
-                            b.payment.paymentStatus === 'SUCCESS'
-                              ? 'text-green-600'
-                              : 'text-yellow-600'
-                          }`}
-                        >
-                          {b.payment.paymentStatus === 'SUCCESS'
-                            ? `✅ Paid via ${b.payment.method}`
-                            : '⏳ Payment Pending'}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex w-full flex-col gap-2 sm:w-40">
-                      {b.status === 'PENDING' &&
-                        b.payment?.paymentStatus !== 'SUCCESS' && (
+                        {(b.status === 'CONFIRMED' || b.status === 'COMPLETED') && (
                           <button
-                            onClick={() => handlePayNow(b)}
-                            className="w-full rounded-xl bg-[#00ff88] px-4 py-2.5 text-sm font-bold text-black hover:brightness-110"
+                            onClick={() => openDisputeModal(b)}
+                            className="w-full rounded-xl border border-red-500 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50"
                           >
-                            💳 Pay Now
+                            ⚠️ Report Dispute
                           </button>
                         )}
-
-                      {(b.status === 'CONFIRMED' || b.status === 'COMPLETED') && (
-                        <button
-                          onClick={() => openDisputeModal(b)}
-                          className="w-full rounded-xl border border-red-500 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50"
-                        >
-                          ⚠️ Report Dispute
-                        </button>
-                      )}
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+
+              {bookings.length > BOOKINGS_PER_PAGE && (
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    onClick={() => goToPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-gray-100"
+                  >
+                    ← Prev
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      className={`h-9 w-9 rounded-lg text-sm font-semibold ${
+                        currentPage === page
+                          ? 'bg-[#00ff88] text-black'
+                          : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-gray-100"
+                  >
+                    Next →
+                  </button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </div>
       </main>
