@@ -118,9 +118,11 @@ export default function Navbar() {
                   Login
                 </button>
               </Link>
-              <button className="px-5 py-2 text-sm bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-100">
+              
+              <button onClick={() => router.push("/sports")} className="px-5 py-2 text-sm bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-100">
                 Book Now
               </button>
+              
             </>
           ) : (
             <>
@@ -183,7 +185,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              <button className="px-5 py-2 text-sm bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-100">
+              <button onClick={() => router.push("/sports")} className="px-5 py-2 text-sm bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-100">
                 Book Now
               </button>
             </>
@@ -246,7 +248,7 @@ export default function Navbar() {
                   Login
                 </button>
               </Link>
-              <button className="px-5 py-2.5 text-sm bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all cursor-pointer">
+              <button onClick={() => router.push("/sports")} className="px-5 py-2.5 text-sm bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all cursor-pointer">
                 Book Now
               </button>
             </div>

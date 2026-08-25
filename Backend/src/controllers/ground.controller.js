@@ -24,9 +24,9 @@ export const getAllGrounds = async (req, res) => {
   }
 }
 
-export const getGroundById = async (req, res) => { 
+export const getGroundById = async (req, res) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
 
     const ground = await prisma.ground.findUnique({
       where: { id },
@@ -36,31 +36,35 @@ export const getGroundById = async (req, res) => {
             user: { select: { name: true, image: true } }
           }
         },
-        owner:    { select: { name: true, phone: true } },
+        owner: { select: { name: true, phone: true } },
         bookings: {
           where: {
-            status: { in: ['PENDING', 'CONFIRMED'] }
+            status: { in: ["PENDING", "CONFIRMED"] }
           },
           select: {
+            id: true,
             bookingDate: true,
-            startTime:   true,
-            endTime:     true,
+            startTime: true,
+            endTime: true,
+            status: true
+          },
+          orderBy: {
+            startTime: "asc"
           }
         }
       }
-    })
+    });
 
     if (!ground) {
-      return res.status(404).json({ message: "Ground not found" })
+      return res.status(404).json({ message: "Ground not found" });
     }
 
-    return res.status(200).json({ ground })
-
+    return res.status(200).json({ ground });
   } catch (error) {
-    console.error("GET GROUND BY ID ERROR 👉", error)
-    return res.status(500).json({ message: error.message })
+    console.error("GET GROUND BY ID ERROR 👉", error);
+    return res.status(500).json({ message: error.message });
   }
-}
+};
 
 export const createGround = async (req, res) => {
   try {

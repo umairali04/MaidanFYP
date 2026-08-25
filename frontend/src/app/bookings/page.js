@@ -322,7 +322,7 @@ export default function MyBookingsPage() {
                           b.payment?.paymentStatus !== 'SUCCESS' && (
                             <button
                               onClick={() => handlePayNow(b)}
-                              className="w-full rounded-xl bg-[#00ff88] px-4 py-2.5 text-sm font-bold text-black hover:brightness-110"
+                              className="w-full rounded-xl bg-[#00ff88] px-4 py-2.5 text-sm font-bold text-black transition-all hover:bg-[#166534] hover:text-white"
                             >
                               💳 Pay Now
                             </button>
@@ -356,10 +356,10 @@ export default function MyBookingsPage() {
                     <button
                       key={page}
                       onClick={() => goToPage(page)}
-                      className={`h-9 w-9 rounded-lg text-sm font-semibold ${
+                      className={`h-9 w-9 rounded-lg text-sm font-semibold transition-all ${
                         currentPage === page
-                          ? 'bg-[#00ff88] text-black'
-                          : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100'
+                          ? 'border border-[#166534] bg-[#166534] text-white'
+                          : 'border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50'
                       }`}
                     >
                       {page}

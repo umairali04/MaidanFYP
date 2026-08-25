@@ -8,62 +8,93 @@ const prisma = new PrismaClient()
 // ============================================
 export const createBooking = async (req, res) => {
   try {
-    const { groundId, bookingDate, startTime, endTime, duration, totalPrice, notes } = req.body
-    const userId = req.user.id
+    const { groundId, bookingDate, startTime, endTime, duration, totalPrice, notes } = req.body;
+    const userId = req.user.id;
 
-    // 1. Check if slot already booked
-    const existing = await prisma.booking.findFirst({
+    const bookingDay = new Date(`${bookingDate}T00:00:00`);
+
+    const existingBookings = await prisma.booking.findMany({
       where: {
         groundId,
-        bookingDate: new Date(bookingDate),
-        startTime,
-        status: { in: ["PENDING", "CONFIRMED"] } // ignore cancelled
-      }
-    })
+        bookingDate: bookingDay,
+        status: { in: ["PENDING", "CONFIRMED"] },
+      },
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        status: true,
+      },
+    });
 
-    if (existing) {
-      return res.status(400).json({ success: false, message: "This slot is already booked" })
+    const newStart = startTime.slice(0, 5);
+    const newEnd = endTime.slice(0, 5);
+
+    const toMinutes = (time) => {
+      const [hours, minutes] = String(time).split(":").map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const newStartMinutes = toMinutes(newStart);
+    const newEndMinutes = toMinutes(newEnd);
+
+    const conflictingBooking = existingBookings.find((existing) => {
+      const existingStart = toMinutes(existing.startTime);
+      const existingEnd = toMinutes(existing.endTime);
+
+      return newStartMinutes < existingEnd && newEndMinutes > existingStart;
+    });
+
+    if (conflictingBooking) {
+      return res.status(400).json({
+        success: false,
+        message: `This slot is already booked (${conflictingBooking.startTime}–${conflictingBooking.endTime})`,
+      });
     }
 
-    // 2. Create booking with PENDING status
-    // ⚠️ Status is PENDING until payment is completed
     const booking = await prisma.booking.create({
       data: {
         userId,
         groundId,
-        bookingDate:  new Date(bookingDate),
+        bookingDate: bookingDay,
         startTime,
         endTime,
-        duration:     Number(duration),
-        totalPrice:   Number(totalPrice),
-        status:       "PENDING",   // ← PENDING until paid
-        notes:        notes || null
+        duration: Number(duration),
+        totalPrice: Number(totalPrice),
+        status: "PENDING",
+        notes: notes || null,
       },
       include: {
-        ground: { select: { name: true, location: true, city: true, pricePerHour: true } }
-      }
-    })
+        ground: {
+          select: {
+            name: true,
+            location: true,
+            city: true,
+            pricePerHour: true,
+          },
+        },
+      },
+    });
 
-    // 3. Send notification to player
     await prisma.notification.create({
       data: {
         userId,
         title: "Booking Created ⏳",
         message: `Your booking for ${booking.ground.name} is pending payment.`,
-        type: "BOOKING"
-      }
-    })
+        type: "BOOKING",
+      },
+    });
 
     res.status(201).json({
       success: true,
       message: "Booking created. Please complete payment to confirm.",
-      booking
-    })
-
+      booking,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message })
+    console.error("CREATE BOOKING ERROR:", err);
+    res.status(500).json({ success: false, message: err.message });
   }
-}
+};
 
 // ============================================
 // 📋 GET MY BOOKINGS
