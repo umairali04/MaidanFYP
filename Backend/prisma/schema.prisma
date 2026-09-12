@@ -209,6 +209,8 @@ model Booking {
   
   // Owner self-booking flag
   isOwnerBooking Boolean      @default(false)
+  paymentDeadline       DateTime?
+  paymentReminderSentAt DateTime?
   
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

@@ -4,13 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { getIncomingRequests, respondToConnection } from "@/lib/connectionsApi";
 
-// How often to check for new incoming requests
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function getToken() {
+  return document.cookie
+    .split("; ")
+    .find((r) => r.startsWith("token="))
+    ?.split("=")[1];
+}
+
+// How often to check for new notifications
 const POLL_MS = 15000;
 
 export default function NotificationBell() {
-  const [requests, setRequests] = useState([]);
+  const [connectionRequests, setConnectionRequests] = useState([]);
+  const [matchInvites, setMatchInvites] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [respondingKey, setRespondingKey] = useState(null); // `${kind}-${id}` currently being responded to
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -31,26 +42,66 @@ export default function NotificationBell() {
 
   async function load() {
     try {
-      const data = await getIncomingRequests();
-      setRequests(data.requests || []);
+      const token = getToken();
+
+      const [connData, inviteRes] = await Promise.all([
+        getIncomingRequests().catch(() => ({ requests: [] })),
+        fetch(`${BASE_URL}/api/bookings/participants/mine`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((r) => r.json())
+          .catch(() => ({ success: false })),
+      ]);
+
+      setConnectionRequests(connData.requests || []);
+      if (inviteRes.success) setMatchInvites(inviteRes.invites || []);
     } catch {
       // Silently ignore — e.g. user isn't logged in yet, or a transient network blip.
-      // The bell just won't show a badge in that case.
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleRespond(connectionId, action) {
+  async function handleRespondConnection(connectionId, action) {
+    const key = `connection-${connectionId}`;
+    setRespondingKey(key);
     try {
       await respondToConnection(connectionId, action);
-      setRequests((prev) => prev.filter((r) => r.id !== connectionId));
+      setConnectionRequests((prev) => prev.filter((r) => r.id !== connectionId));
     } catch {
       // If it fails, leave the request in the list so the user can retry from /connections
+    } finally {
+      setRespondingKey(null);
     }
   }
 
-  const count = requests.length;
+  async function handleRespondInvite(participantId, action) {
+    const key = `invite-${participantId}`;
+    setRespondingKey(key);
+    try {
+      const token = getToken();
+      const res = await fetch(
+        `${BASE_URL}/api/bookings/participants/${participantId}/respond`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ action }), // "CONFIRM" | "DECLINE"
+        }
+      );
+      if (res.ok) {
+        setMatchInvites((prev) => prev.filter((i) => i.id !== participantId));
+      }
+    } catch {
+      // If it fails, leave the invite in the list so the user can retry
+    } finally {
+      setRespondingKey(null);
+    }
+  }
+
+  const count = connectionRequests.length + matchInvites.length;
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -85,7 +136,7 @@ export default function NotificationBell() {
               className="text-gray-900 text-sm font-bold"
               style={{ fontFamily: "'Syne', sans-serif" }}
             >
-              Connection requests
+              Notifications
             </p>
           </div>
 
@@ -94,46 +145,112 @@ export default function NotificationBell() {
               <p className="px-4 py-6 text-sm text-gray-400 text-center">Loading…</p>
             ) : count === 0 ? (
               <p className="px-4 py-6 text-sm text-gray-400 text-center">
-                No new requests right now.
+                No new notifications right now.
               </p>
             ) : (
-              requests.map((req) => (
-                <div
-                  key={req.id}
-                  className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {req.sender.image ? (
-                      <img
-                        src={req.sender.image}
-                        alt={req.sender.name}
-                        className="w-8 h-8 rounded-full object-cover bg-gray-50 flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
-                        {req.sender.name?.slice(0, 2).toUpperCase()}
+              <>
+                {connectionRequests.map((req) => (
+                  <div
+                    key={`connection-${req.id}`}
+                    className="flex items-center justify-between gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {req.sender.image ? (
+                        <img
+                          src={req.sender.image}
+                          alt={req.sender.name}
+                          className="w-8 h-8 rounded-full object-cover bg-gray-50 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                          {req.sender.name?.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-gray-900 text-xs font-semibold truncate">
+                          {req.sender.name}
+                        </p>
+                        <p className="text-gray-400 text-[11px]">
+                          wants to connect
+                        </p>
                       </div>
-                    )}
-                    <p className="text-gray-900 text-xs font-semibold truncate">
-                      {req.sender.name}
-                    </p>
+                    </div>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      <button
+                        onClick={() => handleRespondConnection(req.id, "ACCEPT")}
+                        disabled={respondingKey === `connection-${req.id}`}
+                        className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-all cursor-pointer disabled:opacity-60"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => handleRespondConnection(req.id, "REJECT")}
+                        disabled={respondingKey === `connection-${req.id}`}
+                        className="px-2.5 py-1 text-[11px] font-semibold text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50 transition-all cursor-pointer disabled:opacity-60"
+                      >
+                        Decline
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex gap-1.5 flex-shrink-0">
-                    <button
-                      onClick={() => handleRespond(req.id, "ACCEPT")}
-                      className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-all cursor-pointer"
+                ))}
+
+                {matchInvites.map((inv) => {
+                  const organizer = inv.booking.user;
+                  const ground = inv.booking.ground;
+                  const key = `invite-${inv.id}`;
+
+                  return (
+                    <div
+                      key={key}
+                      className="flex flex-col gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
                     >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => handleRespond(req.id, "REJECT")}
-                      className="px-2.5 py-1 text-[11px] font-semibold text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50 transition-all cursor-pointer"
-                    >
-                      Decline
-                    </button>
-                  </div>
-                </div>
-              ))
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {organizer.image ? (
+                          <img
+                            src={organizer.image}
+                            alt={organizer.name}
+                            className="w-8 h-8 rounded-full object-cover bg-gray-50 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold text-[10px] flex items-center justify-center flex-shrink-0">
+                            {organizer.name?.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-gray-900 text-xs font-semibold truncate">
+                            {organizer.name} invited you to a match
+                          </p>
+                          <p className="text-gray-400 text-[11px] truncate">
+                            {ground.name} ·{" "}
+                            {new Date(inv.booking.bookingDate).toLocaleDateString(
+                              "en-PK",
+                              { month: "short", day: "numeric" }
+                            )}{" "}
+                            · {inv.booking.startTime}–{inv.booking.endTime}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-1.5 justify-end">
+                        <button
+                          onClick={() => handleRespondInvite(inv.id, "CONFIRM")}
+                          disabled={respondingKey === key}
+                          className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-all cursor-pointer disabled:opacity-60"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => handleRespondInvite(inv.id, "DECLINE")}
+                          disabled={respondingKey === key}
+                          className="px-2.5 py-1 text-[11px] font-semibold text-gray-500 border border-gray-200 rounded-md hover:bg-gray-50 transition-all cursor-pointer disabled:opacity-60"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
             )}
           </div>
 

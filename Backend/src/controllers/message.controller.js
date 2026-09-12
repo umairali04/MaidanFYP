@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client"
+import prisma from "../utils/prisma.js"
 import cloudinary from "../utils/cloudinary.js"
-
-const prisma = new PrismaClient()
 
 // ============================================
 // 🔧 HELPER — check two users are ACCEPTED connections

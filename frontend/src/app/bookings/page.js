@@ -67,6 +67,16 @@ export default function MyBookingsPage() {
   const [submittingDispute, setSubmittingDispute] = useState(false)
   const [disputeSuccess, setDisputeSuccess] = useState(false)
 
+  // ---------- Invite Players state ----------
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviteBooking, setInviteBooking] = useState(null)
+  const [connections, setConnections] = useState([])
+  const [participants, setParticipants] = useState([])
+  const [maxPlayers, setMaxPlayers] = useState(null)
+  const [loadingInvite, setLoadingInvite] = useState(false)
+  const [invitingId, setInvitingId] = useState(null)
+  const [inviteError, setInviteError] = useState('')
+
   const [error, setError] = useState('')
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -91,7 +101,9 @@ export default function MyBookingsPage() {
       .finally(() => setLoading(false))
   }, [router])
 
+  // ---------- Pagination ----------
   const totalPages = Math.max(1, Math.ceil(bookings.length / BOOKINGS_PER_PAGE))
+
   const paginatedBookings = bookings.slice(
     (currentPage - 1) * BOOKINGS_PER_PAGE,
     currentPage * BOOKINGS_PER_PAGE
@@ -108,6 +120,7 @@ export default function MyBookingsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // ---------- Payment ----------
   function handlePayNow(booking) {
     setActiveBooking(booking)
     setPaymentMethod('Cash')
@@ -184,6 +197,7 @@ export default function MyBookingsPage() {
     }
   }
 
+  // ---------- Dispute ----------
   function openDisputeModal(booking) {
     setDisputeBooking(booking)
     setDisputeTitle('')
@@ -233,12 +247,100 @@ export default function MyBookingsPage() {
     }
   }
 
+  // =========================================================
+  // INVITE PLAYERS
+  // =========================================================
+
+  async function openInviteModal(booking) {
+    setInviteBooking(booking)
+    setInviteError('')
+    setInvitingId(null)
+    setShowInvite(true)
+    setLoadingInvite(true)
+
+    const token = getToken()
+
+    try {
+      const [connRes, partRes] = await Promise.all([
+        fetch(`${BASE_URL}/api/connections/my`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${BASE_URL}/api/bookings/${booking.id}/participants`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+      ])
+
+      const connData = await connRes.json()
+      const partData = await partRes.json()
+
+      if (connData.success) {
+        setConnections(connData.connections || [])
+      }
+
+      if (partData.success) {
+        setParticipants(partData.participants || [])
+        setMaxPlayers(partData.maxPlayers)
+      }
+    } catch (err) {
+      console.error('Invite loading error:', err)
+      setInviteError('Failed to load connections')
+    } finally {
+      setLoadingInvite(false)
+    }
+  }
+
+  async function handleInvite(userId) {
+    if (!inviteBooking) return
+
+    setInvitingId(userId)
+    setInviteError('')
+
+    const token = getToken()
+
+    try {
+      const res = await fetch(
+        `${BASE_URL}/api/bookings/${inviteBooking.id}/invite`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId }),
+        }
+      )
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to invite player')
+      }
+
+      setParticipants(prev => [...prev, data.participant])
+    } catch (err) {
+      setInviteError(err.message)
+    } finally {
+      setInvitingId(null)
+    }
+  }
+
+  const isParticipant = userId =>
+    participants.some(p => p.userId === userId)
+
+  const isMatchFull =
+    maxPlayers !== null && participants.length >= maxPlayers
+
   return (
     <>
       <Navbar />
 
       <main className="min-h-screen bg-gray-50 px-4 py-6 sm:py-10">
         <div className="mx-auto w-full max-w-4xl">
+
           <h1 className="mb-2 text-2xl font-bold text-gray-900 sm:text-3xl">
             My Bookings
           </h1>
@@ -250,37 +352,55 @@ export default function MyBookingsPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="h-9 w-9 animate-spin rounded-full border-4 border-[#00ff88] border-t-transparent" />
-              <p className="mt-3 text-sm text-gray-400">Loading bookings...</p>
+              <p className="mt-3 text-sm text-gray-400">
+                Loading bookings...
+              </p>
             </div>
           ) : bookings.length === 0 ? (
             <div className="rounded-3xl border border-gray-200 bg-white px-5 py-14 text-center">
-              <div className="mb-3 text-5xl">📅</div>
-              <h3 className="mb-2 font-semibold text-gray-900">No bookings yet</h3>
+
+              <div className="mb-3 text-5xl">
+                📅
+              </div>
+
+              <h3 className="mb-2 font-semibold text-gray-900">
+                No bookings yet
+              </h3>
+
               <p className="mb-6 text-sm text-gray-400">
                 Book a ground to get started
               </p>
+
               <button
                 onClick={() => router.push('/grounds')}
                 className="rounded-xl bg-[#00ff88] px-6 py-3 text-sm font-bold text-black hover:brightness-110"
               >
                 Explore Grounds
               </button>
+
             </div>
           ) : (
             <>
               <div className="flex flex-col gap-4">
+
                 {paginatedBookings.map(b => (
                   <div
                     key={b.id}
                     className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm"
                   >
+
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+
                       <div className="min-w-0 flex-1">
+
                         <div className="mb-2 flex flex-wrap items-center gap-2">
+
                           <h3 className="text-base font-bold text-gray-900">
                             {b.ground?.name || 'Ground'}
                           </h3>
+
                           <StatusBadge status={b.status} />
+
                         </div>
 
                         <p className="mb-1 text-sm text-gray-500">
@@ -289,12 +409,15 @@ export default function MyBookingsPage() {
 
                         <p className="mb-1 text-sm text-gray-500">
                           📅{' '}
-                          {new Date(b.bookingDate).toLocaleDateString('en-PK', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}{' '}
+                          {new Date(b.bookingDate).toLocaleDateString(
+                            'en-PK',
+                            {
+                              weekday: 'short',
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            }
+                          )}{' '}
                           ⏰ {b.startTime} – {b.endTime}
                         </p>
 
@@ -315,9 +438,11 @@ export default function MyBookingsPage() {
                               : '⏳ Payment Pending'}
                           </p>
                         )}
+
                       </div>
 
                       <div className="flex w-full flex-col gap-2 sm:w-40">
+
                         {b.status === 'PENDING' &&
                           b.payment?.paymentStatus !== 'SUCCESS' && (
                             <button
@@ -328,7 +453,18 @@ export default function MyBookingsPage() {
                             </button>
                           )}
 
-                        {(b.status === 'CONFIRMED' || b.status === 'COMPLETED') && (
+                        {/* INVITE PLAYERS BUTTON */}
+                        {b.status === 'CONFIRMED' && (
+                          <button
+                            onClick={() => openInviteModal(b)}
+                            className="w-full rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-gray-700"
+                          >
+                            👥 Invite Players
+                          </button>
+                        )}
+
+                        {(b.status === 'CONFIRMED' ||
+                          b.status === 'COMPLETED') && (
                           <button
                             onClick={() => openDisputeModal(b)}
                             className="w-full rounded-xl border border-red-500 px-4 py-2.5 text-sm font-semibold text-red-500 hover:bg-red-50"
@@ -336,23 +472,33 @@ export default function MyBookingsPage() {
                             ⚠️ Report Dispute
                           </button>
                         )}
+
                       </div>
+
                     </div>
+
                   </div>
                 ))}
+
               </div>
 
               {bookings.length > BOOKINGS_PER_PAGE && (
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+
                   <button
-                    onClick={() => goToPage(Math.max(1, currentPage - 1))}
+                    onClick={() =>
+                      goToPage(Math.max(1, currentPage - 1))
+                    }
                     disabled={currentPage === 1}
                     className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-gray-100"
                   >
                     ← Prev
                   </button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  {Array.from(
+                    { length: totalPages },
+                    (_, i) => i + 1
+                  ).map(page => (
                     <button
                       key={page}
                       onClick={() => goToPage(page)}
@@ -367,87 +513,146 @@ export default function MyBookingsPage() {
                   ))}
 
                   <button
-                    onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
+                    onClick={() =>
+                      goToPage(
+                        Math.min(totalPages, currentPage + 1)
+                      )
+                    }
                     disabled={currentPage === totalPages}
                     className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 disabled:cursor-not-allowed disabled:opacity-40 hover:bg-gray-100"
                   >
                     Next →
                   </button>
+
                 </div>
               )}
+
             </>
           )}
+
         </div>
       </main>
 
+      {/* =====================================================
+          PAYMENT MODAL
+      ====================================================== */}
+
       {showPayment && activeBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+
           <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white">
+
             {paymentSuccess ? (
+
               <div className="p-8 text-center sm:p-10">
-                <div className="mb-3 text-5xl">✅</div>
+
+                <div className="mb-3 text-5xl">
+                  ✅
+                </div>
+
                 <h2 className="mb-2 text-xl font-bold text-gray-900">
                   Payment Successful!
                 </h2>
+
                 <p className="mb-6 text-sm text-gray-500">
                   Your booking is now{' '}
-                  <strong className="text-green-600">CONFIRMED</strong>
+                  <strong className="text-green-600">
+                    CONFIRMED
+                  </strong>
                 </p>
+
                 <button
                   onClick={() => setShowPayment(false)}
                   className="w-full rounded-xl bg-[#00ff88] py-3.5 text-sm font-bold text-black"
                 >
                   Done
                 </button>
+
               </div>
+
             ) : (
+
               <>
                 <div className="bg-[#0f0f0f] p-5 sm:p-6">
+
                   <div className="mb-4 flex items-center justify-between">
+
                     <h2 className="text-lg font-bold text-white">
                       Complete Payment
                     </h2>
+
                     <button
                       onClick={() => setShowPayment(false)}
                       className="text-xl text-gray-400 hover:text-white"
                     >
                       ✕
                     </button>
+
                   </div>
 
                   <div className="rounded-2xl bg-white/5 p-4 text-sm">
+
                     <div className="mb-2 flex justify-between gap-4 text-gray-400">
-                      <span>Ground</span>
+                      <span>
+                        Ground
+                      </span>
+
                       <span className="text-right font-semibold text-white">
                         {activeBooking.ground?.name}
                       </span>
                     </div>
 
                     <div className="mb-2 flex justify-between text-gray-400">
-                      <span>Time</span>
+                      <span>
+                        Time
+                      </span>
+
                       <span className="text-white">
                         {activeBooking.startTime} – {activeBooking.endTime}
                       </span>
                     </div>
 
                     <div className="mt-3 flex justify-between border-t border-white/10 pt-3">
-                      <span className="font-bold text-white">Total</span>
+
+                      <span className="font-bold text-white">
+                        Total
+                      </span>
+
                       <span className="font-bold text-[#00ff88]">
                         Rs. {activeBooking.totalPrice}
                       </span>
+
                     </div>
+
                   </div>
+
                 </div>
 
                 <div className="p-5 sm:p-6">
+
                   <p className="mb-3 text-sm font-semibold text-gray-700">
                     Select Payment Method
                   </p>
 
                   {[
-                    { value: 'JazzCash', emoji: '📱', label: 'JazzCash', desc: 'Pay via JazzCash' },
-                    { value: 'EasyPaisa', emoji: '💚', label: 'EasyPaisa', desc: 'Pay via EasyPaisa' },
-                    { value: 'Cash', emoji: '💵', label: 'Cash', desc: 'Pay cash at ground' },
+                    {
+                      value: 'JazzCash',
+                      emoji: '📱',
+                      label: 'JazzCash',
+                      desc: 'Pay via JazzCash',
+                    },
+                    {
+                      value: 'EasyPaisa',
+                      emoji: '💚',
+                      label: 'EasyPaisa',
+                      desc: 'Pay via EasyPaisa',
+                    },
+                    {
+                      value: 'Cash',
+                      emoji: '💵',
+                      label: 'Cash',
+                      desc: 'Pay cash at ground',
+                    },
                   ].map(m => (
                     <button
                       key={m.value}
@@ -458,9 +663,13 @@ export default function MyBookingsPage() {
                           : 'border-gray-200 bg-white'
                       }`}
                     >
-                      <span className="text-2xl">{m.emoji}</span>
+
+                      <span className="text-2xl">
+                        {m.emoji}
+                      </span>
 
                       <div className="flex-1">
+
                         <p
                           className={`text-sm font-semibold ${
                             paymentMethod === m.value
@@ -470,7 +679,11 @@ export default function MyBookingsPage() {
                         >
                           {m.label}
                         </p>
-                        <p className="text-xs text-gray-400">{m.desc}</p>
+
+                        <p className="text-xs text-gray-400">
+                          {m.desc}
+                        </p>
+
                       </div>
 
                       <div
@@ -482,6 +695,7 @@ export default function MyBookingsPage() {
                       >
                         {paymentMethod === m.value && '✓'}
                       </div>
+
                     </button>
                   ))}
 
@@ -500,64 +714,101 @@ export default function MyBookingsPage() {
                       ? 'Processing...'
                       : `Pay Rs. ${activeBooking.totalPrice} via ${paymentMethod}`}
                   </button>
+
                 </div>
               </>
+
             )}
+
           </div>
+
         </div>
       )}
 
+      {/* =====================================================
+          DISPUTE MODAL
+      ====================================================== */}
+
       {showDispute && disputeBooking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+
           <div className="w-full max-w-md rounded-3xl bg-white p-5 sm:p-8">
+
             {disputeSuccess ? (
+
               <div className="text-center">
-                <div className="mb-3 text-5xl">📨</div>
+
+                <div className="mb-3 text-5xl">
+                  📨
+                </div>
+
                 <h2 className="mb-2 text-xl font-bold text-gray-900">
                   Dispute Submitted!
                 </h2>
+
                 <p className="mb-6 text-sm text-gray-500">
                   Our admin team will review your dispute shortly.
                 </p>
+
                 <button
                   onClick={() => setShowDispute(false)}
                   className="w-full rounded-xl bg-[#00ff88] py-3.5 text-sm font-bold text-black"
                 >
                   Done
                 </button>
+
               </div>
+
             ) : (
+
               <>
                 <div className="mb-5 flex items-center justify-between">
+
                   <h2 className="text-lg font-bold text-gray-900">
                     ⚠️ Report Dispute
                   </h2>
+
                   <button
                     onClick={() => setShowDispute(false)}
                     className="text-xl text-gray-400 hover:text-gray-700"
                   >
                     ✕
                   </button>
+
                 </div>
 
                 <div className="mb-5 rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-500">
+
                   Booking:{' '}
+
                   <strong className="text-gray-900">
                     {disputeBooking.ground?.name}
                   </strong>{' '}
+
                   · {disputeBooking.startTime} – {disputeBooking.endTime}
+
                 </div>
 
                 <div className="mb-4">
+
                   <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Title
                   </label>
+
                   <input
                     value={disputeTitle}
                     type="text"
-                    onKeyDown={(e) => {
-                      if (!/[a-zA-Z\s]/.test(e.key) &&
-                          !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                    onKeyDown={e => {
+                      if (
+                        !/[a-zA-Z\s]/.test(e.key) &&
+                        ![
+                          'Backspace',
+                          'Delete',
+                          'ArrowLeft',
+                          'ArrowRight',
+                          'Tab',
+                        ].includes(e.key)
+                      ) {
                         e.preventDefault()
                       }
                     }}
@@ -565,12 +816,15 @@ export default function MyBookingsPage() {
                     placeholder="e.g. Ground was not available"
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#00ff88]"
                   />
+
                 </div>
 
                 <div className="mb-5">
+
                   <label className="mb-2 block text-sm font-semibold text-gray-700">
                     Description
                   </label>
+
                   <textarea
                     value={disputeDesc}
                     onChange={e => setDisputeDesc(e.target.value)}
@@ -578,6 +832,7 @@ export default function MyBookingsPage() {
                     rows={4}
                     className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 outline-none focus:border-[#00ff88]"
                   />
+
                 </div>
 
                 {error && (
@@ -591,11 +846,185 @@ export default function MyBookingsPage() {
                   disabled={submittingDispute}
                   className="w-full rounded-xl bg-red-500 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {submittingDispute ? 'Submitting...' : 'Submit Dispute'}
+                  {submittingDispute
+                    ? 'Submitting...'
+                    : 'Submit Dispute'}
                 </button>
+
               </>
+
             )}
+
           </div>
+
+        </div>
+      )}
+
+      {/* =====================================================
+          INVITE PLAYERS MODAL
+      ====================================================== */}
+
+      {showInvite && inviteBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white">
+
+            {/* HEADER */}
+
+            <div className="bg-[#0f0f0f] p-5 sm:p-6">
+
+              <div className="mb-2 flex items-center justify-between">
+
+                <h2 className="text-lg font-bold text-white">
+                  Invite Players
+                </h2>
+
+                <button
+                  onClick={() => setShowInvite(false)}
+                  className="text-xl text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+
+              </div>
+
+              <p className="text-sm text-gray-400">
+
+                {inviteBooking.ground?.name} ·{' '}
+
+                {new Date(
+                  inviteBooking.bookingDate
+                ).toLocaleDateString('en-PK', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                })}{' '}
+
+                · {inviteBooking.startTime} – {inviteBooking.endTime}
+
+              </p>
+
+              {maxPlayers !== null && (
+                <p className="mt-2 text-xs font-semibold text-[#00ff88]">
+                  {participants.length} / {maxPlayers} players joined
+                </p>
+              )}
+
+            </div>
+
+            {/* PLAYERS */}
+
+            <div className="max-h-96 overflow-y-auto p-5 sm:p-6">
+
+              {loadingInvite ? (
+
+                <div className="flex flex-col items-center justify-center py-10">
+
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#00ff88] border-t-transparent" />
+
+                  <p className="mt-3 text-sm text-gray-400">
+                    Loading players...
+                  </p>
+
+                </div>
+
+              ) : connections.length === 0 ? (
+
+                <p className="py-6 text-center text-sm text-gray-400">
+                  You don't have any connections yet. Add players via Search
+                  Players first.
+                </p>
+
+              ) : (
+
+                <div className="flex flex-col gap-2">
+
+                  {connections.map(conn => {
+
+                    // /api/connections/my returns:
+                    // { connectionId, player, connectedSince }
+
+                    const otherUser = conn.player
+
+                    const alreadyIn = isParticipant(
+                      otherUser.id
+                    )
+
+                    return (
+                      <div
+                        key={conn.connectionId}
+                        className="flex items-center justify-between rounded-xl border border-gray-200 p-3"
+                      >
+
+                        <div className="flex items-center gap-3">
+
+                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-green-100">
+                            {otherUser.image || otherUser.profileImage || otherUser.avatar ? (
+                              <img
+                                src={otherUser.image || otherUser.profileImage || otherUser.avatar}
+                                alt={otherUser.name || 'Player'}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center text-xs font-bold text-green-700">
+                                {otherUser.name
+                                  ?.split(' ')
+                                  .map(n => n[0])
+                                  .join('')
+                                  .slice(0, 2)
+                                  .toUpperCase()}
+                              </div>
+                            )}
+                          </div>
+
+                          <p className="text-sm font-semibold text-gray-900">
+                            {otherUser.name}
+                          </p>
+
+                        </div>
+
+                        <button
+                          onClick={() =>
+                            handleInvite(otherUser.id)
+                          }
+                          disabled={
+                            alreadyIn ||
+                            isMatchFull ||
+                            invitingId === otherUser.id
+                          }
+                          className={`rounded-lg px-3 py-1.5 text-xs font-bold disabled:cursor-not-allowed ${
+                            alreadyIn
+                              ? 'bg-green-50 text-green-600'
+                              : 'bg-[#00ff88] text-black hover:brightness-110 disabled:opacity-60'
+                          }`}
+                        >
+                          {alreadyIn
+                            ? '✓ Invited'
+                            : invitingId === otherUser.id
+                            ? '...'
+                            : isMatchFull
+                            ? 'Full'
+                            : 'Invite'}
+                        </button>
+
+                      </div>
+                    )
+                  })}
+
+                </div>
+
+              )}
+
+              {inviteError && (
+                <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-500">
+                  {inviteError}
+                </p>
+              )}
+
+            </div>
+
+          </div>
+
         </div>
       )}
 

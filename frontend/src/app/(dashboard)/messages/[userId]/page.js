@@ -88,13 +88,6 @@ function ReplyIcon() {
   );
 }
 
-function SaveIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
-      <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
 
 function VoicePlayer({ src, duration: durationProp, isMine }) {
   const audioRef = useRef(null);
@@ -247,11 +240,11 @@ function ConversationsSidebar({ conversations, loading, activeUserId, search, se
         ) : filtered.length === 0 ? (
           <p className="text-xs text-gray-400 text-center py-10 px-4">No conversations yet.</p>
         ) : (
-          filtered.map((c) => {
+          filtered.map((c, i) => {
             const isActive = c.userId === activeUserId;
             return (
               <button
-                key={c.userId}
+                key={`${c.userId || c.player?.id || "conversation"}-${i}`}
                 onClick={() => onSelect(c.userId)}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
                   isActive ? "bg-slate-900" : "hover:bg-gray-50"
@@ -546,23 +539,6 @@ export default function MessageThreadPage() {
   }
 
   // ----- Save (download media, or copy text) -----
-  async function handleSaveMessage(msg) {
-    try {
-      if (msg.fileUrl) {
-        const a = document.createElement("a");
-        a.href = msg.fileUrl;
-        a.download = "";
-        a.target = "_blank";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } else if (msg.content) {
-        await navigator.clipboard.writeText(msg.content);
-      }
-    } catch (err) {
-      console.error("SAVE ERROR:", err);
-    }
-  }
 
   function startPress(msg, isMine) {
     if (!isMine || msg.isDeleted) return;
@@ -736,12 +712,7 @@ export default function MessageThreadPage() {
                                   >
                                     <ReplyIcon /> Reply
                                   </button>
-                                  <button
-                                    onClick={() => handleSaveMessage(msg)}
-                                    className="flex items-center gap-1 text-[11px] font-medium text-gray-500 hover:text-emerald-600 transition-colors cursor-pointer"
-                                  >
-                                    <SaveIcon /> Save
-                                  </button>
+                                  
                                 </div>
                               )}
 

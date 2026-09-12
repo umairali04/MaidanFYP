@@ -49,15 +49,15 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="mb-5 text-xs font-extrabold uppercase tracking-[0.16em] text-white">Sports</h4>
+            <h4 className="mb-3 text-xs font-extrabold uppercase tracking-[0.16em] text-white">Sports</h4>
 
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {["Football", "Cricket", "Padel", "Badminton", "Basketball", "Tennis"].map((sport) => (
                 <li key={sport}>
-                  <a href="#" className="group inline-flex items-center gap-2 text-sm text-slate-400 transition-colors hover:text-emerald-400">
-                    <span className="h-1 w-1 rounded-full bg-slate-600 transition-all group-hover:w-2 group-hover:bg-emerald-400" />
+                  <span className="inline-flex items-center gap-2 text-sm text-slate-400">
+                    <span className="h-1 w-1 rounded-full bg-slate-600" />
                     {sport}
-                  </a>
+                  </span>
                 </li>
               ))}
             </ul>

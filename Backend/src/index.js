@@ -19,6 +19,10 @@ import playerRoutes from "./routes/player.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import recommendationRoutes from "./routes/recommendation.routes.js"
 
+import matchParticipantRoutes from "./routes/matchParticipant.routes.js" 
+
+import "./jobs/bookingExpiry.job.js";
+
 const app = express();
 
 app.use(cors({
@@ -44,6 +48,8 @@ app.use("/api/connections", connectionRoutes);
 app.use("/api/players", playerRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/recommendations", recommendationRoutes)
+
+app.use("/api/bookings", matchParticipantRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");

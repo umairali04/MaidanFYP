@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Navbar from '@/components/Navbar'
 
 const SPECIAL_CHAR = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/
 
@@ -104,6 +105,9 @@ export default function SignupPage() {
   }
 
   return (
+    <>
+      <Navbar />
+    
   <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 font-[Inter]">
 
     <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:grid-cols-2">
@@ -346,17 +350,17 @@ export default function SignupPage() {
 
         {/* Submit Button */}
         <button
-          type="submit"
-          disabled={loading}
-          className={`mt-2 h-11 w-full rounded-lg bg-blue-600 text-sm font-semibold uppercase tracking-wide text-white transition-all
-          ${
-            loading
-              ? 'cursor-not-allowed opacity-60'
-              : 'hover:bg-blue-700 active:scale-[0.98]'
-          }`}
-        >
-          {loading ? 'Creating account…' : 'Create account'}
-        </button>
+  type="submit"
+  disabled={loading}
+  className={`mt-2 h-11 w-full rounded-lg bg-green-600 text-sm font-semibold uppercase tracking-wide text-white transition-all
+  ${
+    loading
+      ? 'cursor-not-allowed opacity-60'
+      : 'hover:bg-green-700 active:scale-[0.98]'
+  }`}
+>
+  {loading ? 'Creating account…' : 'Create account'}
+</button>
       </form>
 
       {/* Footer */}
@@ -374,5 +378,6 @@ export default function SignupPage() {
     </div>
 
 </div>
+</>
 )
 }

@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
+import prisma from "../utils/prisma.js"
 
 // Fields safe to expose about another player — never email/phone/password
 const publicUserSelect = {

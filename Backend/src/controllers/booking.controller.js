@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client"
-const prisma = new PrismaClient()
+import prisma from "../utils/prisma.js"
 
 // ============================================
 // 📅 CREATE BOOKING
@@ -11,7 +10,8 @@ export const createBooking = async (req, res) => {
     const { groundId, bookingDate, startTime, endTime, duration, totalPrice, notes } = req.body;
     const userId = req.user.id;
 
-    const bookingDay = new Date(`${bookingDate}T00:00:00`);
+    const bookingDay = new Date(`${bookingDate}T00:00:00.000Z`);
+    const paymentDeadline = new Date(Date.now() + 60 * 60 * 1000);
 
     const existingBookings = await prisma.booking.findMany({
       where: {
@@ -63,6 +63,7 @@ export const createBooking = async (req, res) => {
         totalPrice: Number(totalPrice),
         status: "PENDING",
         notes: notes || null,
+        paymentDeadline,
       },
       include: {
         ground: {
@@ -79,15 +80,15 @@ export const createBooking = async (req, res) => {
     await prisma.notification.create({
       data: {
         userId,
-        title: "Booking Created ⏳",
-        message: `Your booking for ${booking.ground.name} is pending payment.`,
+        title: "Payment Required ⏳",
+        message: `Your booking for ${booking.ground.name} is pending payment. Please complete your payment within 1 hour or your booking will be automatically reversed.`,
         type: "BOOKING",
       },
     });
 
     res.status(201).json({
       success: true,
-      message: "Booking created. Please complete payment to confirm.",
+      message: "Booking created. Please complete payment within 1 hour to confirm.",
       booking,
     });
   } catch (err) {

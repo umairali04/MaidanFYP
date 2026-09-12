@@ -143,19 +143,19 @@ export default function Navbar() {
               {/* Avatar Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
-    onClick={() => setDropdownOpen(!dropdownOpen)}
-    className="flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-xs font-bold text-white ring-2 ring-emerald-100 transition-all hover:bg-emerald-700"
-  >
-    {user?.image ? (
-      <img
-        src={user.image}
-        alt={user.name || "Profile"}
-        className="h-full w-full object-cover"
-      />
-    ) : (
-      initials
-    )}
-  </button>
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center overflow-hidden rounded-full bg-emerald-600 text-xs font-bold text-white ring-2 ring-emerald-100 transition-all hover:bg-emerald-700"
+                >
+                  {user?.image ? (
+                    <img
+                      src={user.image}
+                      alt={user.name || "Profile"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    initials
+                  )}
+                </button>
 
                 {dropdownOpen && (
                   <div className="absolute right-0 top-11 w-56 bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xl shadow-gray-100/80 z-50">
@@ -166,9 +166,6 @@ export default function Navbar() {
 
                     <Link href="/profile" onClick={() => setDropdownOpen(false)}>
                       <DropdownItem icon={<UserIcon />} label="My Profile" />
-                    </Link>
-                    <Link href="/change_password" onClick={() => setDropdownOpen(false)}>
-                      <DropdownItem icon={<LockIcon />} label="Change Password" />
                     </Link>
                     <Link href="/edit_profile" onClick={() => setDropdownOpen(false)}>
                       <DropdownItem icon={<EditIcon />} label="Edit Profile" />
@@ -192,69 +189,154 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Hamburger */}
+  
+        {/* Mobile Hamburger */}
         <button
-          className="md:hidden flex flex-col justify-center items-center gap-[5px] w-9 h-9 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+          className="md:hidden flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
+          aria-expanded={menuOpen}
         >
-          <span className={`block h-0.5 w-5 bg-gray-700 transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[7px]' : ''}`} />
-          <span className={`block h-0.5 w-5 bg-gray-700 transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-          <span className={`block h-0.5 w-5 bg-gray-700 transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+          <div className="relative flex h-5 w-5 flex-col justify-center">
+            <span className={`absolute left-0 block h-0.5 w-5 bg-gray-700 transition-all duration-300 ${menuOpen ? "rotate-45" : "-translate-y-[6px]"}`} />
+            <span className={`absolute left-0 block h-0.5 w-5 bg-gray-700 transition-all duration-300 ${menuOpen ? "opacity-0" : "opacity-100"}`} />
+            <span className={`absolute left-0 block h-0.5 w-5 bg-gray-700 transition-all duration-300 ${menuOpen ? "-rotate-45" : "translate-y-[6px]"}`} />
+          </div>
         </button>
       </div>
 
       {/* Mobile Menu */}
-      <div className={`md:hidden overflow-hidden transition-all duration-300 ${menuOpen ? 'max-h-screen pb-4 border-t border-gray-100' : 'max-h-0'}`}>
-        <div className="flex flex-col px-6 pt-4 gap-1">
-          {navLinks.map((link) => (
-  <Link
-    key={link.name}
-    href={link.path}
-    className="px-3 py-2.5 text-sm text-gray-600 font-medium rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-    onClick={() => setMenuOpen(false)}
-  >
-    {link.name}
-  </Link>
-))}
+      {/* Mobile Menu */}
+<div className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${menuOpen ? "max-h-[calc(100vh-80px)] opacity-100" : "max-h-0 opacity-0"}`}>
+  <div className="border-t border-gray-100 bg-white">
+    <div className="max-h-[calc(100vh-80px)] overflow-y-auto px-5 py-4">
 
-          {user ? (
-            <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-1">
-              <div className="px-3 py-2">
-                <p className="text-gray-900 text-sm font-semibold">{user.name}</p>
-                <p className="text-gray-400 text-xs mt-0.5">{user.email}</p>
-              </div>
-              {user?.role === "GROUND_OWNER" && (
-                <Link
-                  href="/ground_owner_dashboard"
-                  onClick={() => setMenuOpen(false)}
-                  className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors"
-                >
-                  Dashboard
-                </Link>
-              )}
-              <Link href="/profile" className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">My Profile</Link>
-              <Link href="/change-password" className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">Change Password</Link>
-              <Link href="/edit-profile" className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">Edit Profile</Link>
-              <Link href="/bookings" className="px-3 py-2.5 text-sm text-gray-600 rounded-lg hover:bg-gray-50 hover:text-gray-900 transition-colors">My Bookings</Link>
-              <button onClick={handleLogout} className="text-left px-3 py-2.5 text-sm text-red-500 rounded-lg hover:bg-red-50 transition-colors mt-1">
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-3 mt-3 pt-3 border-t border-gray-100">
-              <Link href="/login">
-                <button className="px-4 py-2.5 text-sm text-gray-700 font-semibold border border-gray-200 rounded-lg hover:border-emerald-600 hover:text-emerald-600 transition-all cursor-pointer">
-                  Login
-                </button>
-              </Link>
-              <button onClick={() => router.push("/sports")} className="px-5 py-2.5 text-sm bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-all cursor-pointer">
-                Book Now
-              </button>
-            </div>
-          )}
-        </div>
+      {/* Navigation Links */}
+      <div className="flex flex-col gap-1">
+        {navLinks.map((link) => (
+          <Link
+            key={link.name}
+            href={link.path}
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center min-h-[46px] px-3 rounded-xl text-[15px] font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-600 active:bg-gray-100 transition-colors"
+          >
+            {link.name}
+          </Link>
+        ))}
       </div>
+
+      {/* Divider */}
+      <div className="my-4 h-px bg-gray-100" />
+
+      {!user ? (
+        /* Logged Out */
+        <div className="flex flex-col gap-3">
+
+          <Link
+            href="/login"
+            onClick={() => setMenuOpen(false)}
+            className="flex h-11 w-full items-center justify-center rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:border-emerald-600 hover:text-emerald-600 transition-colors"
+          >
+            Login
+          </Link>
+
+          <button
+            onClick={() => {
+              setMenuOpen(false)
+              router.push("/sports")
+            }}
+            className="flex h-11 w-full items-center justify-center rounded-xl bg-emerald-600 text-sm font-semibold text-white shadow-sm shadow-emerald-100 hover:bg-emerald-700 transition-colors"
+          >
+            Book Now
+          </button>
+
+        </div>
+      ) : (
+        /* Logged In */
+        <div className="flex flex-col">
+
+          {/* User Information */}
+          <div className="flex items-center justify-between px-3 py-2">
+              {/* User Info */}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[15px] font-semibold text-gray-900">
+                  {user.name}
+                </p>
+
+                <p className="mt-1 truncate text-xs text-gray-400">
+                  {user.email}
+                </p>
+              </div>
+
+              {/* Messages & Notifications */}
+              {user?.role !== "GROUND_OWNER" && (
+                <div className="ml-4 flex flex-shrink-0 items-center gap-2">
+                  
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-gray-50 transition-colors">
+                    <MessagesBell />
+                  </div>
+
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-gray-50 transition-colors">
+                    <NotificationBell />
+                  </div>
+
+                </div>
+              )}
+
+            </div>
+
+          {/* Ground Owner Dashboard */}
+          {user?.role === "GROUND_OWNER" && (
+            <Link
+              href="/ground_owner_dashboard"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center min-h-[46px] px-3 rounded-xl text-[15px] font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-600 transition-colors"
+            >
+              Dashboard
+            </Link>
+          )}
+
+          {/* My Profile */}
+          <Link
+            href="/profile"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center min-h-[46px] px-3 rounded-xl text-[15px] font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-600 transition-colors"
+          >
+            My Profile
+          </Link>
+
+          {/* Edit Profile */}
+          <Link
+            href="/edit_profile"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center min-h-[46px] px-3 rounded-xl text-[15px] font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-600 transition-colors"
+          >
+            Edit Profile
+          </Link>
+
+          {/* My Bookings */}
+          <Link
+            href="/bookings"
+            onClick={() => setMenuOpen(false)}
+            className="flex items-center min-h-[46px] px-3 rounded-xl text-[15px] font-medium text-gray-700 hover:bg-gray-50 hover:text-emerald-600 transition-colors"
+          >
+            My Bookings
+          </Link>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="mt-1 flex items-center min-h-[46px] w-full px-3 rounded-xl text-left text-[15px] font-medium text-red-500 hover:bg-red-50 transition-colors"
+          >
+            Logout
+          </button>
+
+        </div>
+      )}
+
+    </div>
+  </div>
+</div>
     </nav>
   )
 }

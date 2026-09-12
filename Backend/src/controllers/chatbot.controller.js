@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../utils/prisma.js"
 
-const prisma = new PrismaClient();
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
@@ -83,7 +82,7 @@ export const chat = async (req, res) => {
     const response = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${GROQ_API_KEY}` },
-      body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages, max_tokens: 500, temperature: 0.7 }),
+      body: JSON.stringify({ model: "openai/gpt-oss-20b", messages, max_tokens: 500, temperature: 0.7 }),
     });
 
     const data = await response.json();

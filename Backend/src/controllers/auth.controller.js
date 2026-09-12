@@ -312,28 +312,78 @@ export const resetPassword = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: { id: true, name: true, email: true, phone: true, role: true, image: true, isVerified: true, createdAt: true }
-    })
-    res.json({ success: true, user })
+      where: {
+        id: req.user.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        city: true,
+        preferredSports: true,
+        image: true,
+        isVerified: true,
+        createdAt: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    console.error("GET ME ERROR:", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
   }
-}
+};
 
 // ============================================
 // UPDATE PROFILE
 // ============================================
 export const updateProfile = async (req, res) => {
   try {
-    const { name, phone } = req.body;
+    const {
+      name,
+      phone,
+      city,
+      preferredSports,
+    } = req.body;
+
+    // ==========================================
+    // PREPARE UPDATE DATA
+    // ==========================================
 
     const updateData = {
       name,
       phone,
+      city,
     };
 
-    // Upload profile picture if one was selected
+    // ==========================================
+    // PREFERRED SPORTS
+    // ==========================================
+
+    if (preferredSports !== undefined) {
+      try {
+        updateData.preferredSports =
+          typeof preferredSports === "string"
+            ? JSON.parse(preferredSports)
+            : preferredSports;
+      } catch (error) {
+        return res.status(400).json({
+          message: "Invalid preferredSports format",
+        });
+      }
+    }
+
+    // ==========================================
+    // UPLOAD PROFILE PICTURE
+    // ==========================================
+
     if (req.file) {
       const uploadResult = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -355,9 +405,13 @@ export const updateProfile = async (req, res) => {
         stream.end(req.file.buffer);
       });
 
-      // Save Cloudinary URL in database
+      // Save Cloudinary URL
       updateData.image = uploadResult.secure_url;
     }
+
+    // ==========================================
+    // UPDATE DATABASE
+    // ==========================================
 
     const user = await prisma.user.update({
       where: {
@@ -365,6 +419,10 @@ export const updateProfile = async (req, res) => {
       },
       data: updateData,
     });
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
 
     res.json({
       success: true,

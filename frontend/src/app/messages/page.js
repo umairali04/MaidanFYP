@@ -95,64 +95,59 @@ export default function InboxPage() {
               </div>
             ) : (
               <ul>
-                {conversations.map(({ player, lastMessage, unreadCount }, i) => {
-                  const hasUnread = unreadCount > 0;
-                  return (
-                    <li key={player.id}>
-                      <Link
-                        href={`/messages/${player.id}`}
-                        className={`flex items-center gap-3 px-5 py-4 transition-colors duration-150 ${
-                          hasUnread ? "bg-emerald-50/50" : "hover:bg-gray-50"
-                        } ${i !== 0 ? "border-t border-gray-50" : ""}`}
-                      >
-                        {player.image ? (
-                          <img
-                            src={player.image}
-                            alt={player.name}
-                            className="w-12 h-12 rounded-full object-cover bg-gray-50 ring-2 ring-emerald-50 flex-shrink-0"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-emerald-600 text-white font-bold text-sm flex items-center justify-center ring-2 ring-emerald-100 flex-shrink-0">
-                            {player.name?.slice(0, 2).toUpperCase()}
-                          </div>
+              {conversations.map(({ player, lastMessage, unreadCount }, i) => {
+                const hasUnread = unreadCount > 0;
+
+                return (
+                  <li key={`${player.id || "player"}-${i}`}>
+                    <Link
+                      href={`/messages/${player.id}`}
+                      className={`flex items-center gap-3 px-5 py-4 transition-colors duration-150 ${
+                        hasUnread ? "bg-emerald-50/50" : "hover:bg-gray-50"
+                      } ${i !== 0 ? "border-t border-gray-50" : ""}`}
+                    >
+                      {player.image ? (
+                        <img
+                          src={player.image}
+                          alt={player.name}
+                          className="w-12 h-12 rounded-full object-cover bg-gray-50 ring-2 ring-emerald-50 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-emerald-600 text-white font-bold text-sm flex items-center justify-center ring-2 ring-emerald-100 flex-shrink-0">
+                          {player.name?.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-sm truncate ${hasUnread ? "text-gray-900 font-bold" : "text-gray-900 font-semibold"}`}>
+                          {player.name}
+                        </p>
+
+                        <p className={`text-xs truncate ${hasUnread ? "text-gray-700 font-medium" : "text-gray-400"}`}>
+                          {lastMessage
+                            ? lastMessage.content
+                            : player.preferredSports?.slice(0, 3).join(", ") || "Say hello 👋"}
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        {lastMessage && (
+                          <span className="text-[11px] text-gray-400 whitespace-nowrap">
+                            {formatRelativeTime(lastMessage.createdAt)}
+                          </span>
                         )}
 
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`text-sm truncate ${
-                              hasUnread ? "text-gray-900 font-bold" : "text-gray-900 font-semibold"
-                            }`}
-                          >
-                            {player.name}
-                          </p>
-                          <p
-                            className={`text-xs truncate ${
-                              hasUnread ? "text-gray-700 font-medium" : "text-gray-400"
-                            }`}
-                          >
-                            {lastMessage
-                              ? lastMessage.content
-                              : player.preferredSports?.slice(0, 3).join(", ") || "Say hello 👋"}
-                          </p>
-                        </div>
-
-                        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                          {lastMessage && (
-                            <span className="text-[11px] text-gray-400 whitespace-nowrap">
-                              {formatRelativeTime(lastMessage.createdAt)}
-                            </span>
-                          )}
-                          {hasUnread && (
-                            <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center">
-                              {unreadCount > 9 ? "9+" : unreadCount}
-                            </span>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+                        {hasUnread && (
+                          <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center">
+                            {unreadCount > 9 ? "9+" : unreadCount}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
             )}
           </div>
         </div>

@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
+import prisma from "../utils/prisma.js"
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-
-const prisma = new PrismaClient()
 
 // ============================================
 // 🔐 ADMIN LOGIN

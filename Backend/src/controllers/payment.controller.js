@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client"
-  import Stripe from "stripe"
+import prisma from "../utils/prisma.js"
+import Stripe from "stripe"
 
-  const prisma = new PrismaClient()
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
   // ============================================
   // 💳 INITIATE PAYMENT
@@ -26,6 +25,22 @@ import { PrismaClient } from "@prisma/client"
 
       if (booking.userId !== userId) {
         return res.status(403).json({ success: false, message: "Not your booking" })
+      }
+
+      if (booking.status !== "PENDING") {
+        return res.status(400).json({ success: false, message: "This booking is no longer available for payment" })
+      }
+
+      if (booking.paymentDeadline && new Date() > booking.paymentDeadline) {
+        await prisma.booking.update({
+          where: { id: booking.id },
+          data: { status: "CANCELLED" },
+        })
+
+        return res.status(400).json({
+          success: false,
+          message: "Payment deadline has expired. Your booking has been reversed.",
+        })
       }
 
       if (booking.payment) {
@@ -273,7 +288,7 @@ import { PrismaClient } from "@prisma/client"
 
       await prisma.booking.update({
         where: { id: payment.bookingId },
-        data: { status: "PENDING" }
+        data: { status: "CANCELLED" }
       })
 
       res.status(200).json({
