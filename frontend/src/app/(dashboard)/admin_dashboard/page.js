@@ -15,8 +15,7 @@ import {
 } from "recharts"
 import Link from 'next/link'
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 // ============================================================
 // HELPERS
