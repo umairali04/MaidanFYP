@@ -70,7 +70,7 @@ export default function LoginPage() {
     <>
      <Navbar />
      
-     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 font-[Inter]">
+     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 font-sans">
 
     <div className="grid w-full max-w-6xl min-h-[80vh] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl md:grid-cols-2">
 

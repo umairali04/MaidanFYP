@@ -108,7 +108,7 @@ export default function SignupPage() {
     <>
       <Navbar />
     
-  <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 font-[Inter]">
+  <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 font-sans">
 
     <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:grid-cols-2">
 
@@ -352,7 +352,7 @@ export default function SignupPage() {
         <button
   type="submit"
   disabled={loading}
-  className={`mt-2 h-11 w-full rounded-lg bg-green-600 text-sm font-semibold uppercase tracking-wide text-white transition-all
+  className={`mt-1 h-11 w-full rounded-lg bg-black text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-60
   ${
     loading
       ? 'cursor-not-allowed opacity-60'

@@ -1,11 +1,41 @@
-import express from "express"
-import { getAllGrounds, getGroundById, createGround } from "../controllers/ground.controller.js"
-import { verifyToken } from "../middleware/auth.middleware.js"
+import express from "express";
 
-const router = express.Router()
+import {
+  getAllGrounds,
+  getGroundById,
+  createGround,
+} from "../controllers/ground.controller.js";
 
-router.get("/",    getAllGrounds)
-router.get("/:id", getGroundById)
-router.post("/",    verifyToken, createGround)
+import {
+  getGroundAnalytics,
+} from "../controllers/groundAnalytics.controller.js";
 
-export default router
+import {
+  verifyToken,
+} from "../middleware/auth.middleware.js";
+
+const router = express.Router();
+
+router.get(
+  "/",
+  getAllGrounds
+);
+
+// Analytics route MUST come before /:id
+router.get(
+  "/:id/analytics",
+  getGroundAnalytics
+);
+
+router.get(
+  "/:id",
+  getGroundById
+);
+
+router.post(
+  "/",
+  verifyToken,
+  createGround
+);
+
+export default router;

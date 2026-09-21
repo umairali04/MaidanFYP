@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import SettingsPage from "./components/SettingsPage";
 import BookingsPage from "./components/BookingsPage";
 import Link from 'next/link'
+import GroundAnalytics from "./components/OwnerGroundAnalytics"
 
 // ---------------- ICON ----------------
 const Plus = () => <span className="font-bold text-lg">+</span>
@@ -62,7 +63,7 @@ function Field({ label, children }) {
 /* =========================================================
    MY GROUNDS VIEW
 ========================================================= */
-function MyGrounds({ onEdit }) {
+function MyGrounds({ onEdit, onAnalytics }) {
   const [grounds, setGrounds] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -231,6 +232,13 @@ function MyGrounds({ onEdit }) {
                   {ground.isActive ? 'Active' : 'Inactive'}
                 </span>
 
+                <button
+                  onClick={() => onAnalytics(ground.id)}
+                  className="px-4 py-2 rounded-lg bg-black hover:bg-gray-800 text-white text-xs font-black transition-colors whitespace-nowrap"
+                >
+                  📊 Analytics
+                </button>
+
                 {/* Edit button */}
                 <button
                   onClick={() => onEdit(ground.id)}
@@ -248,6 +256,52 @@ function MyGrounds({ onEdit }) {
 }
 
 /* =========================================================
+   GROUND ANALYTICS MODAL
+========================================================= */
+function GroundAnalyticsModal({ groundId, onClose }) {
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full max-w-6xl max-h-[92vh] overflow-y-auto rounded-2xl shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+
+        {/* HEADER */}
+        <div className="sticky top-0 z-20 bg-white border-b border-gray-200 px-5 sm:px-6 py-4 flex items-center justify-between">
+
+          <div>
+            <h2 className="text-lg sm:text-xl font-black text-gray-900">
+              Ground Analytics
+            </h2>
+
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              Booking activity and performance overview
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            ✕
+          </button>
+
+        </div>
+
+        {/* ANALYTICS CONTENT */}
+        <div className="p-3 sm:p-5">
+          <GroundAnalytics groundId={groundId} />
+        </div>
+
+      </div>
+    </div>
+  )
+}
+
+/* =========================================================
    EDIT GROUND VIEW
 ========================================================= */
 function EditGround({ groundId, onBack }) {
@@ -260,7 +314,7 @@ function EditGround({ groundId, onBack }) {
   const [form, setForm] = useState({
     name: '', description: '', sportType: 'CRICKET',
     location: '', city: '', latitude: '', longitude: '',
-    pricePerHour: '', openTime: '', closeTime: '',
+    pricePerHour: '', maxPlayers: 10, openTime: '', closeTime: '',
     slotDuration: 60, isActive: true, facilities: [], images: [],
   })
 
@@ -282,6 +336,7 @@ function EditGround({ groundId, onBack }) {
           latitude: data.latitude ?? '',
           longitude: data.longitude ?? '',
           pricePerHour: data.pricePerHour || '',
+          maxPlayers: data.maxPlayers ?? 10,
           openTime: data.openTime || '',
           closeTime: data.closeTime || '',
           slotDuration: data.slotDuration || 60,
@@ -336,6 +391,7 @@ function EditGround({ groundId, onBack }) {
         ...form,
         pricePerHour: parseFloat(form.pricePerHour),
         slotDuration: parseInt(form.slotDuration),
+        maxPlayers: parseInt(form.maxPlayers) || 10,
         latitude: form.latitude !== '' ? parseFloat(form.latitude) : null,
         longitude: form.longitude !== '' ? parseFloat(form.longitude) : null,
       }
@@ -396,6 +452,19 @@ function EditGround({ groundId, onBack }) {
             </Field>
             <Field label="Price Per Hour (₨) *">
               <input type="number" name="pricePerHour" value={form.pricePerHour} onChange={handleChange} required min="0" placeholder="e.g. 2500" className={inputClass} />
+            </Field>
+            <Field label="Maximum Players">
+              <input
+                type="number"
+                name="maxPlayers"
+                value={form.maxPlayers}
+                onChange={handleChange}
+                min="1"
+                max="100"
+                required
+                placeholder="e.g. 10"
+                className={inputClass}
+              />
             </Field>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -521,6 +590,7 @@ function AddGroundModal({ onClose, onSuccess }) {
     location: '',
     sportType: 'FOOTBALL',
     pricePerHour: '',
+    maxPlayers: 10,
     facilities: [],
   })
 
@@ -534,7 +604,7 @@ function AddGroundModal({ onClose, onSuccess }) {
   const uploadImage = async (file) => {
     const formData = new FormData()
     formData.append('file', file)
-    const res = await fetch('http://localhost:5000/api/upload', { method: 'POST', body: formData })
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`,{ method: 'POST', body: formData })
     const data = await res.json()
     if (!res.ok) throw new Error(data.message || 'Upload failed')
     return data.url
@@ -582,7 +652,12 @@ function AddGroundModal({ onClose, onSuccess }) {
     setLoading(true)
     try {
       const token = getToken()
-      const payload = { ...form, pricePerHour: Number(form.pricePerHour) || 0, images }
+      const payload = {
+        ...form,
+        pricePerHour: Number(form.pricePerHour) || 0,
+        maxPlayers: Number(form.maxPlayers) || 10,
+        images
+      }
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/grounds`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -633,16 +708,37 @@ function AddGroundModal({ onClose, onSuccess }) {
             <select className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none transition-colors" value={form.sportType} onChange={(e) => set('sportType', e.target.value)}>
               <option value="FOOTBALL">Football</option>
               <option value="CRICKET">Cricket</option>
-              <option value="TENNIS">Tennis</option>
+              <option value="HOCKEY">Hockey</option>
               <option value="BADMINTON">Badminton</option>
-              <option value="OTHER">Other</option>
+              <option value="TENNIS">Tennis</option>
+              <option value="SQUASH">Squash</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-xs mb-1 font-medium text-gray-600">
+              Maximum Players
+            </label>
+
+            <input
+              type="number"
+              min="1"
+              max="100"
+              step="1"
+              className="w-full p-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none transition-colors"
+              placeholder="e.g., 10"
+              value={form.maxPlayers}
+              onChange={(e) => set('maxPlayers', e.target.value)}
+            />
+
+            <p className="text-xs text-gray-400 mt-1">
+              Maximum number of players allowed for this ground.
+            </p>
           </div>
           <div className="col-span-2">
             <label className="block text-xs mb-2 font-medium text-gray-600">Facilities</label>
             <div className="flex gap-2">
               <input className="flex-1 p-3 bg-gray-50 border border-gray-300 rounded-lg focus:border-green-500 focus:outline-none transition-colors" placeholder="e.g., Parking, Floodlights, Showers" value={facilityInput} onChange={(e) => setFacilityInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addFacility()} />
-              <button onClick={addFacility} className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap" disabled={!facilityInput.trim()}>Add Facility</button>
+              <button onClick={addFacility} className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap" disabled={!facilityInput.trim()}>Add Facility</button>
             </div>
           </div>
           {form.facilities.length > 0 && (
@@ -681,7 +777,7 @@ function AddGroundModal({ onClose, onSuccess }) {
           <div className="col-span-2 flex gap-3 mt-8 pt-6 border-t border-gray-200">
             <button onClick={onClose} className="flex-1 border border-gray-300 hover:border-gray-400 bg-white p-4 rounded-xl transition-all font-medium hover:bg-gray-50 text-gray-700" disabled={loading}>Cancel</button>
             <button onClick={handleSubmit} disabled={loading || !form.name.trim() || !form.city.trim() || !form.location.trim()}
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:from-green-300 disabled:to-green-400 disabled:cursor-not-allowed text-white p-4 rounded-xl font-bold text-lg shadow-lg transition-all">
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap">
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -722,7 +818,17 @@ export default function Page() {
   const [userName, setUserName] = useState(null)
   const [loadingUser, setLoadingUser] = useState(true)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [analyticsGroundId, setAnalyticsGroundId] = useState(null)
+
+
   const router = useRouter();
+  const handleAnalytics = (groundId) => {
+    setAnalyticsGroundId(groundId)
+  }
+
+  const closeAnalytics = () => {
+    setAnalyticsGroundId(null)
+  }
 
   const handleGroundCreated = (data) => {
     console.log('✅ GROUND CREATED:', data)
@@ -1489,7 +1595,7 @@ export default function Page() {
                 <p className="text-gray-500 text-sm mt-1">{PAGE_TITLES['my-grounds'].subtitle}</p>
               </div>
             </div>
-            <MyGrounds onEdit={handleEditGround} />
+            <MyGrounds onEdit={handleEditGround} onAnalytics={handleAnalytics} />
           </>
         )}
 
@@ -1529,6 +1635,14 @@ export default function Page() {
       {/* MODAL */}
       {showModal && (
         <AddGroundModal onClose={() => setShowModal(false)} onSuccess={handleGroundCreated} />
+      )}
+
+      {/* GROUND ANALYTICS MODAL */}
+      {analyticsGroundId && (
+        <GroundAnalyticsModal
+          groundId={analyticsGroundId}
+          onClose={closeAnalytics}
+        />
       )}
     </div>
   )

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import GroundAnalytics from "@/components/GroundAnalytics";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -920,6 +921,12 @@ async function handlePayment() {
                   </div>
                 </div>
               )}
+
+              {/* =====================================================
+                  GROUND ANALYTICS
+              ===================================================== */}
+
+              <GroundAnalytics groundId={ground.id} />
 
               {/* REVIEWS */}
               {ground.reviews?.length > 0 && (

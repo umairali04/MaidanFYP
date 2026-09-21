@@ -81,8 +81,16 @@ export default function Navbar() {
   { name: 'Search Players', path: '/search_players' },
   { name: 'Connections', path: '/connections' },
   { name: 'Contact Us', path: '/contact' },
-  
-];
+]
+
+const visibleNavLinks =
+  user?.role === 'GROUND_OWNER' || user?.role === 'ADMIN'
+    ? navLinks.filter(
+        (link) =>
+          link.name !== 'Search Players' &&
+          link.name !== 'Connections'
+      )
+    : navLinks
 
   return (
     <nav className="sticky top-0 z-[1000] bg-white border-b border-gray-100">
@@ -101,7 +109,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-3">
                   {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => (
+          {visibleNavLinks.map((link) => (
             <Link
               key={link.name}
               href={link.path}
@@ -213,7 +221,7 @@ export default function Navbar() {
 
       {/* Navigation Links */}
       <div className="flex flex-col gap-1">
-        {navLinks.map((link) => (
+        {visibleNavLinks.map((link) => (
           <Link
             key={link.name}
             href={link.path}
