@@ -26,9 +26,25 @@ import "./jobs/bookingExpiry.job.js";
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'https://maidaan.site',
+      'https://www.maidaan.site'
+    ];
+
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app')
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
-}))
+}));
 app.use(express.json());
 
 app.use("/api/auth",     authRoutes);
