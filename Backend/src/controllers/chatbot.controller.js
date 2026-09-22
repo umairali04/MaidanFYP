@@ -82,7 +82,12 @@ export const chat = async (req, res) => {
     const response = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${GROQ_API_KEY}` },
-      body: JSON.stringify({ model: "openai/gpt-oss-20b", messages, max_tokens: 500, temperature: 0.7 }),
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
+        messages,
+        max_tokens: 500,
+        temperature: 0.7
+      }),
     });
 
     const data = await response.json();
