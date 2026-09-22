@@ -86,7 +86,18 @@ export const chat = async (req, res) => {
     });
 
     const data = await response.json();
-    if (!response.ok) return res.status(500).json({ error: "Groq API error" });
+
+    if (!response.ok) {
+      console.error("========== GROQ API ERROR ==========");
+      console.error("Status:", response.status);
+      console.error("Response:", JSON.stringify(data, null, 2));
+      console.error("====================================");
+
+      return res.status(500).json({
+        error: "Groq API error",
+        details: data?.error?.message || "Unknown Groq error",
+      });
+    }
 
     const reply = data.choices[0].message.content;
 
