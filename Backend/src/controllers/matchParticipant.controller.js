@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client"
 const prisma = new PrismaClient()
-
+import { sendMatchInviteEmail } from "../utils/mailer.js"
 // ============================================
 // ➕ INVITE A CONNECTION TO YOUR BOOKING/MATCH
 // Only the booking's organizer (the user who made it) can invite.
@@ -81,6 +81,10 @@ export const inviteToBooking = async (req, res) => {
         type: "MATCH_INVITE"
       }
     })
+
+    // 7. Email the invited player the match code
+    const invitee = await prisma.user.findUnique({ where: { id: inviteeId } })
+    await sendMatchInviteEmail(invitee.email, invitee.name, booking)
 
     res.status(201).json({ success: true, message: "Player invited", participant })
 

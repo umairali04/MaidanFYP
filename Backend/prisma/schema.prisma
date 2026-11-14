@@ -206,6 +206,7 @@ model Booking {
   totalPrice    Float
   status        BookingStatus @default(PENDING)
   notes         String?
+  matchCode   String?       @unique   
   
   // Owner self-booking flag
   isOwnerBooking Boolean      @default(false)

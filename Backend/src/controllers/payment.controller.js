@@ -1,7 +1,11 @@
-import prisma from "../utils/prisma.js"
-import Stripe from "stripe"
+import { PrismaClient } from "@prisma/client"
+  import Stripe from "stripe"
+  import { generateMatchCode } from "../utils/generateMatchCode.js"
+  import { sendBookingConfirmationEmail } from "../utils/mailer.js"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+  const prisma = new PrismaClient()
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+  //strip object is created
 
   // ============================================
   // 💳 INITIATE PAYMENT
@@ -26,7 +30,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
       if (booking.userId !== userId) {
         return res.status(403).json({ success: false, message: "Not your booking" })
       }
-
+      
       if (booking.status !== "PENDING") {
         return res.status(400).json({ success: false, message: "This booking is no longer available for payment" })
       }
@@ -57,7 +61,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
       })
 
       if (method === "Card") {
-        const session = await stripe.checkout.sessions.create({
+        const session = await stripe.checkout.sessions.create({//ask stripe to create checkout session.
           payment_method_types: ["card"],
           customer_email: booking.user.email,
           line_items: [
@@ -67,17 +71,20 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
                 product_data: {
                   name: `${booking.ground.name} - ${booking.startTime} to ${booking.endTime}`,
                 },
-                unit_amount: Math.round(booking.totalPrice * 100),
+                unit_amount: Math.round(booking.totalPrice * 100), //converts into smallest unit currency
               },
               quantity: 1,
             },
           ],
-          mode: "payment",
+          mode: "payment", //one time booking, not subscription
           success_url: `${process.env.CLIENT_URL}/bookings?payment=success`,
           cancel_url: `${process.env.CLIENT_URL}/bookings?payment=cancelled`,
           metadata: {
             bookingIds: JSON.stringify([booking.id]),
             paymentIds: JSON.stringify([payment.id]),
+            //attaching own db id's to stripe session, later when stripe sends wehbhook, backend can say:
+            //which maidan booking/payment does this stripe payment belong to? 
+            //That's how your system connects Stripe's payment with your own database.
           },
         })
 
@@ -137,19 +144,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
         }
       }
 
-      const payments = await Promise.all(
+      const payments = await Promise.all( //promise: wait until all payment creation is done
         bookings.map(b =>
-          prisma.payment.create({
+          prisma.payment.create({ //for every booking, create payment
             data: {
               bookingId: b.id,
               amount: b.totalPrice,
               paymentStatus: "PENDING",
-              method: "Card",
+              method: "Card", 
             }
           })
         )
       )
-
+      //for each booking, create one stripe item
       const line_items = bookings.map(b => ({
         price_data: {
           currency: "pkr",
@@ -196,69 +203,81 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
   // automatically by the Stripe webhook below, not this route.
   // ============================================
   export const confirmPayment = async (req, res) => {
-    try {
-      const { paymentId } = req.params
-      const { transactionId } = req.body
-      const userId = req.user.id
+  try {
+    const { paymentId } = req.params
+    const { transactionId } = req.body
+    const userId = req.user.id
 
-      const payment = await prisma.payment.findUnique({
-        where: { id: paymentId },
-        include: { booking: true }
-      })
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { booking: { include: { ground: true, user: true } } }
+    })
 
-      if (!payment) {
-        return res.status(404).json({ success: false, message: "Payment not found" })
-      }
-
-      if (payment.booking.userId !== userId) {
-        return res.status(403).json({ success: false, message: "Not your payment" })
-      }
-
-      if (payment.paymentStatus === "SUCCESS") {
-        return res.status(400).json({ success: false, message: "Payment already confirmed" })
-      }
-
-      if (payment.method === "Card") {
-        return res.status(400).json({
-          success: false,
-          message: "Card payments are confirmed automatically. Please wait a moment and refresh."
-        })
-      }
-
-      const updatedPayment = await prisma.payment.update({
-        where: { id: paymentId },
-        data: {
-          paymentStatus: "SUCCESS",
-          transactionId: transactionId || `TXN-${Date.now()}`,
-          paidAt: new Date()
-        }
-      })
-
-      await prisma.booking.update({
-        where: { id: payment.bookingId },
-        data: { status: "CONFIRMED" }
-      })
-
-      await prisma.notification.create({
-        data: {
-          userId: payment.booking.userId,
-          title: "Payment Successful ✅",
-          message: `Your payment of Rs ${payment.amount} has been confirmed.`,
-          type: "PAYMENT"
-        }
-      })
-
-      res.status(200).json({
-        success: true,
-        message: "Payment confirmed! Booking is now CONFIRMED.",
-        payment: updatedPayment
-      })
-
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message })
+    if (!payment) {
+      return res.status(404).json({ success: false, message: "Payment not found" })
     }
-  }
 
+    if (payment.booking.userId !== userId) {
+      return res.status(403).json({ success: false, message: "Not your payment" })
+    }
+
+    if (payment.paymentStatus === "SUCCESS") {
+      return res.status(400).json({ success: false, message: "Payment already confirmed" })
+    }
+
+    if (payment.method === "Card") {
+      return res.status(400).json({
+        success: false,
+        message: "Card payments are confirmed automatically. Please wait a moment and refresh."
+      })
+    }
+
+    const updatedPayment = await prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        paymentStatus: "SUCCESS",
+        transactionId: transactionId || `TXN-${Date.now()}`,
+        paidAt: new Date()
+      }
+    })
+
+    // Generate unique match code with collision check
+    let matchCode
+    let isUnique = false
+    while (!isUnique) {
+      matchCode = generateMatchCode()
+      const existing = await prisma.booking.findUnique({ where: { matchCode } })
+      if (!existing) isUnique = true
+    }
+
+    const updatedBooking = await prisma.booking.update({
+      where: { id: payment.bookingId },
+      data: { status: "CONFIRMED", matchCode },
+      include: { ground: true, user: true, payment: true }
+    })
+
+    await prisma.notification.create({
+      data: {
+        userId: payment.booking.userId,
+        title: "Payment Successful ✅",
+        message: `Your payment of Rs ${payment.amount} has been confirmed. Match code: ${matchCode}`,
+        type: "PAYMENT"
+      }
+    })
+
+    await sendBookingConfirmationEmail(updatedBooking.user.email, updatedBooking)
+
+    res.status(200).json({
+      success: true,
+      message: "Payment confirmed! Booking is now CONFIRMED.",
+      payment: updatedPayment,
+      matchCode
+    })
+
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message })
+  }
+}
   // ============================================
   // ❌ FAIL PAYMENT
   // Called if payment fails or player cancels
@@ -392,27 +411,39 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
           if (payment && payment.paymentStatus !== "SUCCESS") {
             await prisma.payment.update({
-              where: { id: paymentIds[i] },
-              data: {
-                paymentStatus: "SUCCESS",
-                transactionId: session.payment_intent,
-                paidAt: new Date(),
-              }
-            })
+  where: { id: paymentIds[i] },
+  data: {
+    paymentStatus: "SUCCESS",
+    transactionId: session.payment_intent,
+    paidAt: new Date(),
+  }
+})
 
-            const booking = await prisma.booking.update({
-              where: { id: bookingIds[i] },
-              data: { status: "CONFIRMED" }
-            })
+// Generate unique match code
+let matchCode
+let isUnique = false
+while (!isUnique) {
+  matchCode = generateMatchCode()
+  const existing = await prisma.booking.findUnique({ where: { matchCode } })
+  if (!existing) isUnique = true
+}
 
-            await prisma.notification.create({
-              data: {
-                userId: booking.userId,
-                title: "Payment Successful ✅",
-                message: `Your payment of Rs ${payment.amount} has been confirmed.`,
-                type: "PAYMENT"
-              }
-            })
+const booking = await prisma.booking.update({
+  where: { id: bookingIds[i] },
+  data: { status: "CONFIRMED", matchCode },
+  include: { ground: true, user: true, payment: true }
+})
+
+await prisma.notification.create({
+  data: {
+    userId: booking.userId,
+    title: "Payment Successful ✅",
+    message: `Your payment of Rs ${payment.amount} has been confirmed. Match code: ${matchCode}`,
+    type: "PAYMENT"
+  }
+})
+
+            await sendBookingConfirmationEmail(booking.user.email, booking)
           }
         }
 

@@ -35,7 +35,13 @@ export default function Contact() {
     }
 
     try {
-      const res = await fetch("/api/contact", { method: "POST", body: data });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/contact`,
+        {
+          method: "POST",
+          body: data,
+        }
+      );
 
       if (res.ok) {
         setSubmitted(true);

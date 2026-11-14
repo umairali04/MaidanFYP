@@ -21,6 +21,8 @@ import recommendationRoutes from "./routes/recommendation.routes.js"
 
 import matchParticipantRoutes from "./routes/matchParticipant.routes.js" 
 
+import contactRoutes from "./routes/contact.routes.js";
+
 import "./jobs/bookingExpiry.job.js";
 
 const app = express();
@@ -66,6 +68,8 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/recommendations", recommendationRoutes)
 
 app.use("/api/bookings", matchParticipantRoutes);
+
+app.use("/api", contactRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");
