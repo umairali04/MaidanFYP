@@ -111,7 +111,7 @@ export default function AdminLogin() {
                   <input
                     type="email"
                     required
-                    placeholder="admin@maidaan.com"
+                    placeholder="admin@maidaan.site"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}

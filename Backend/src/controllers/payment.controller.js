@@ -202,82 +202,143 @@ import { PrismaClient } from "@prisma/client"
   // Cash, JazzCash, EasyPaisa). Card payments are confirmed
   // automatically by the Stripe webhook below, not this route.
   // ============================================
-  export const confirmPayment = async (req, res) => {
+  
+export const confirmPayment = async (req, res) => {
   try {
-    const { paymentId } = req.params
-    const { transactionId } = req.body
-    const userId = req.user.id
+    const { paymentId } = req.params;
+    const { transactionId } = req.body;
+    const userId = req.user.id;
 
     const payment = await prisma.payment.findUnique({
       where: { id: paymentId },
-      include: { booking: { include: { ground: true, user: true } } }
-    })
+      include: {
+        booking: {
+          include: {
+            ground: true,
+            user: true
+          }
+        }
+      }
+    });
 
     if (!payment) {
-      return res.status(404).json({ success: false, message: "Payment not found" })
+      return res.status(404).json({
+        success: false,
+        message: "Payment not found"
+      });
     }
 
     if (payment.booking.userId !== userId) {
-      return res.status(403).json({ success: false, message: "Not your payment" })
+      return res.status(403).json({
+        success: false,
+        message: "Not your payment"
+      });
     }
 
-    if (payment.paymentStatus === "SUCCESS") {
-      return res.status(400).json({ success: false, message: "Payment already confirmed" })
+    // Return successful response for an already-confirmed payment
+    if (
+      payment.paymentStatus === "SUCCESS" &&
+      payment.booking.status === "CONFIRMED"
+    ) {
+      return res.status(200).json({
+        success: true,
+        message: "Payment already confirmed!",
+        payment,
+        matchCode: payment.booking.matchCode
+      });
     }
 
     if (payment.method === "Card") {
       return res.status(400).json({
         success: false,
-        message: "Card payments are confirmed automatically. Please wait a moment and refresh."
-      })
+        message: "Card payments are confirmed automatically."
+      });
     }
 
-    const updatedPayment = await prisma.payment.update({
-      where: { id: paymentId },
-      data: {
-        paymentStatus: "SUCCESS",
-        transactionId: transactionId || `TXN-${Date.now()}`,
-        paidAt: new Date()
+    // Generate unique match code if one doesn't already exist
+    let matchCode = payment.booking.matchCode;
+
+    if (!matchCode) {
+      let isUnique = false;
+
+      while (!isUnique) {
+        matchCode = generateMatchCode();
+
+        const existing = await prisma.booking.findUnique({
+          where: { matchCode }
+        });
+
+        if (!existing) isUnique = true;
       }
-    })
-
-    // Generate unique match code with collision check
-    let matchCode
-    let isUnique = false
-    while (!isUnique) {
-      matchCode = generateMatchCode()
-      const existing = await prisma.booking.findUnique({ where: { matchCode } })
-      if (!existing) isUnique = true
     }
 
-    const updatedBooking = await prisma.booking.update({
-      where: { id: payment.bookingId },
-      data: { status: "CONFIRMED", matchCode },
-      include: { ground: true, user: true, payment: true }
-    })
+    // Update payment and booking atomically
+    const [updatedPayment, updatedBooking] =
+      await prisma.$transaction([
+        prisma.payment.update({
+          where: { id: paymentId },
+          data: {
+            paymentStatus: "SUCCESS",
+            transactionId:
+              transactionId || payment.transactionId || `TXN-${Date.now()}`,
+            paidAt: payment.paidAt || new Date()
+          }
+        }),
 
-    await prisma.notification.create({
+        prisma.booking.update({
+          where: { id: payment.bookingId },
+          data: {
+            status: "CONFIRMED",
+            matchCode
+          },
+          include: {
+            ground: true,
+            user: true,
+            payment: true
+          }
+        })
+      ]);
+
+    // Send notification separately.
+    // Notification failure must not fail payment confirmation.
+    prisma.notification.create({
       data: {
         userId: payment.booking.userId,
         title: "Payment Successful ✅",
         message: `Your payment of Rs ${payment.amount} has been confirmed. Match code: ${matchCode}`,
         type: "PAYMENT"
       }
-    })
+    }).catch(err => {
+      console.error("PAYMENT NOTIFICATION ERROR:", err.message);
+    });
 
-    await sendBookingConfirmationEmail(updatedBooking.user.email, updatedBooking)
+    // Send email separately.
+    // Email failure must not affect the successful payment response.
+    sendBookingConfirmationEmail(
+      updatedBooking.user.email,
+      updatedBooking
+    ).catch(err => {
+      console.error("BOOKING EMAIL ERROR:", err.message);
+    });
 
-    res.status(200).json({
+    // Respond immediately after successful database updates
+    return res.status(200).json({
       success: true,
       message: "Payment confirmed! Booking is now CONFIRMED.",
       payment: updatedPayment,
       matchCode
-    })
+    });
 
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message })
+    console.error("CONFIRM PAYMENT ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Payment confirmation failed. Please check your booking status."
+    });
   }
-}
+};
+
   // ============================================
   // ❌ FAIL PAYMENT
   // Called if payment fails or player cancels
@@ -443,7 +504,8 @@ await prisma.notification.create({
   }
 })
 
-            await sendBookingConfirmationEmail(booking.user.email, booking)
+sendBookingEmail(booking.user.email, booking).catch(err => console.error("EMAIL ERROR:", err.message));
+return res.json({ success: true });
           }
         }
 
