@@ -168,7 +168,6 @@ export default function SlotRecommendations({ defaultLimit = 8 }) {
       return
     }
 
-    setLoggedIn(true)
     setLoading(true)
     setError('')
 
@@ -176,14 +175,32 @@ export default function SlotRecommendations({ defaultLimit = 8 }) {
       const params = new URLSearchParams({ limit: defaultLimit })
       if (sport) params.append('sportType', sport)
 
-      const res = await fetch(`${BASE_URL}/api/recommendations/slots?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const res = await fetch(
+        `${BASE_URL}/api/recommendations/slots?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      // Handle expired or invalid authentication
+      if (res.status === 401 || res.status === 403) {
+        setLoggedIn(false)
+        setRecommendations([])
+        setError('')
+        return
+      }
+
       const data = await res.json()
 
-      if (!res.ok || !data.success) throw new Error(data.message || 'Could not load recommendations')
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || 'Could not load recommendations')
+      }
 
+      setLoggedIn(true)
       setRecommendations(data.recommendations || [])
+
     } catch (err) {
       setError(err.message)
     } finally {
