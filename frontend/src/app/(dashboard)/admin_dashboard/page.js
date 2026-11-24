@@ -790,39 +790,35 @@ const sportData = Object.entries(sportCount)
                 </tr>
               </thead>
 
+              
               <tbody className="divide-y divide-slate-100">
-                {recentBookings.map(
-                  (booking) => (
-                    <TableRow key={booking.id}>
-                      <TableCell className="font-bold text-slate-800">
-                        {booking.user?.name || "—"}
-                      </TableCell>
+                {recentBookings.map((booking) => (
+                  <TableRow key={booking.id}>
+                    <TableCell className="font-bold text-slate-800">
+                      {booking.user?.name || "—"}
+                    </TableCell>
 
-                      <TableCell>
-                        {booking.ground?.name || "—"}
-                      </TableCell>
+                    <TableCell>
+                      {booking.ground?.name || "—"}
+                    </TableCell>
 
-                      <TableCell>
-                        {booking.sport || "—"}
-                      </TableCell>
+                    <TableCell>
+                      {booking.ground?.sportType || "—"}
+                    </TableCell>
 
-                      <TableCell className="text-slate-400">
-                        {booking.date
-                          ? new Date(
-                              booking.date
-                            ).toLocaleDateString()
-                          : "—"}
-                      </TableCell>
+                    <TableCell className="text-slate-400">
+                      {booking.bookingDate
+                        ? new Date(booking.bookingDate).toLocaleDateString("en-GB")
+                        : "—"}
+                    </TableCell>
 
-                      <TableCell>
-                        <StatusBadge
-                          status={booking.status}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  )
-                )}
+                    <TableCell>
+                      <StatusBadge status={booking.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
               </tbody>
+
             </table>
           </div>
         )}
@@ -1139,9 +1135,10 @@ function GroundsSection() {
 
               <tbody className="divide-y divide-slate-100">
                 {filtered.map((ground) => (
+                  
                   <TableRow key={ground.id}>
                     <TableCell className="font-bold text-slate-800">
-                      {ground.name}
+                      {ground.name || "—"}
                     </TableCell>
 
                     <TableCell>
@@ -1149,7 +1146,7 @@ function GroundsSection() {
                     </TableCell>
 
                     <TableCell>
-                      {ground.sport || "—"}
+                      {ground.sportType || "—"}
                     </TableCell>
 
                     <TableCell className="text-slate-400">
@@ -1157,17 +1154,16 @@ function GroundsSection() {
                     </TableCell>
 
                     <TableCell className="font-bold text-emerald-600">
-                      Rs {ground.pricePerHour || 0}
+                      Rs {ground.pricePerHour ?? 0}
                     </TableCell>
 
                     <TableCell>
                       <StatusBadge
-                        status={
-                          ground.status || "ACTIVE"
-                        }
+                        status={ground.isActive ? "ACTIVE" : "INACTIVE"}
                       />
                     </TableCell>
                   </TableRow>
+
                 ))}
 
                 {filtered.length === 0 && (
@@ -1304,14 +1300,12 @@ function BookingsSection() {
                     </TableCell>
 
                     <TableCell>
-                      {booking.sport || "—"}
+                      {booking.ground?.sportType || "—"}
                     </TableCell>
 
                     <TableCell className="text-slate-400">
-                      {booking.date
-                        ? new Date(
-                            booking.date
-                          ).toLocaleDateString()
+                      {booking.bookingDate
+                        ? new Date(booking.bookingDate).toLocaleDateString("en-GB")
                         : "—"}
                     </TableCell>
 
@@ -1320,9 +1314,7 @@ function BookingsSection() {
                     </TableCell>
 
                     <TableCell>
-                      <StatusBadge
-                        status={booking.status}
-                      />
+                      <StatusBadge status={booking.status} />
                     </TableCell>
                   </TableRow>
                 ))}
