@@ -241,11 +241,11 @@ function ConversationsSidebar({ conversations, loading, activeUserId, search, se
           <p className="text-xs text-gray-400 text-center py-10 px-4">No conversations yet.</p>
         ) : (
           filtered.map((c, i) => {
-            const isActive = c.userId === activeUserId;
+            const isActive = c.player?.id === activeUserId;
             return (
               <button
-                key={`${c.userId || c.player?.id || "conversation"}-${i}`}
-                onClick={() => onSelect(c.userId)}
+                key={`${c.player?.id || "conversation"}-${i}`}
+                onClick={() => onSelect(c.player?.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer ${
                   isActive ? "bg-slate-900" : "hover:bg-gray-50"
                 }`}
@@ -349,24 +349,34 @@ export default function MessageThreadPage() {
     if (checkingAuth) return;
     let interval;
     async function load(initial = false) {
-  try {
-    const data = await getConversation(userId);
-    setMessages(data.messages || []);
-    if (initial) {
-      const profile = await getPlayerProfile(userId);
-      setPlayer(profile.player);
+      if (!userId || userId === "undefined") {
+        setError("Invalid conversation ID");
+        setLoading(false);
+        return;
+      }
+
+      setError("");
+
+      try {
+        const data = await getConversation(userId);
+        setMessages(data.messages || []);
+
+        if (initial) {
+          const profile = await getPlayerProfile(userId);
+          setPlayer(profile.player);
+        }
+      } catch (err) {
+        if (err.status === 401) {
+          clearAuthCookies();
+          router.replace("/login");
+          return;
+        }
+
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     }
-  } catch (err) {
-    if (err.status === 401) {
-      clearAuthCookies();
-      router.replace("/login");
-      return;
-    }
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-}
     load(true);
     interval = setInterval(() => load(false), POLL_MS);
     return () => clearInterval(interval);
